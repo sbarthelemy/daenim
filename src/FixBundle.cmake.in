@@ -1,0 +1,17 @@
+include(BundleUtilities)
+# Set bundle to the full path name of the executable already
+# existing in the install tree
+set(bundle
+    "${CMAKE_INSTALL_PREFIX}/bin/daenim@CMAKE_EXECUTABLE_SUFFIX@"
+)
+
+# Set other_libs to a list of full path names to addtional
+# libraries that cannot be reached by dependency analysis.
+# (Dynamically loaded PlugIns, for example.)
+set(other_libs "")
+
+# Set dirs to a list of directories whwere prerequisite libraries
+# may be found:
+set(dirs "@KIBRARY_OUTPUT_PATH@")
+fixup_bundle ("${bundle}" "${other_libs}" "${dirs}")
+
