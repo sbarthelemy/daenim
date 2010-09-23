@@ -18,6 +18,7 @@
 
 #include "AnimtkViewerKeyHandler"
 #include "AnimtkViewerGUI"
+#include "ViewerExt"
 
 #include <iostream>
 #include <osg/io_utils>
@@ -33,8 +34,8 @@
 #include <osgAnimation/AnimationManagerBase>
 #include <osgAnimation/Bone>
 
-const int WIDTH  = 1440;
-const int HEIGHT = 900;
+const int WIDTH  = 800;
+const int HEIGHT = 600;
 
 
 osg::Geode* createAxis() 
@@ -102,6 +103,8 @@ struct AddHelperBone : public osg::NodeVisitor
 
 int main(int argc, char** argv) 
 {
+	bool hasAnim = true;
+	
     osg::ArgumentParser arguments(&argc, argv);
     arguments.getApplicationUsage()->setApplicationName(arguments.getApplicationName());
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" is an example for viewing osgAnimation animations.");
@@ -124,7 +127,8 @@ int main(int argc, char** argv)
     if (arguments.read("--drawbone"))
         drawBone = true;
 
-    osgViewer::Viewer viewer(arguments);
+    //osgViewer::Viewer viewer(arguments);
+	osgViewer::ViewerExt viewer(arguments);
     osg::ref_ptr<osg::Group> group = new osg::Group();
 
     osg::Group* node = dynamic_cast<osg::Group*>(osgDB::readNodeFiles(arguments)); //dynamic_cast<osgAnimation::AnimationManager*>(osgDB::readNodeFile(psr[1]));
@@ -142,7 +146,8 @@ int main(int argc, char** argv)
         AnimtkViewerModelController::setModel(finder._am.get());
     } else {
         osg::notify(osg::WARN) << "no osgAnimation::AnimationManagerBase found in the subgraph, no animations available" << std::endl;
-    }
+		hasAnim = false;
+	}
 
     if (drawBone) {
         osg::notify(osg::INFO) << "Add Bones Helper" << std::endl;
@@ -151,8 +156,9 @@ int main(int argc, char** argv)
     }
     node->addChild(createAxis());
 
-    AnimtkViewerGUI* gui    = new AnimtkViewerGUI(&viewer, WIDTH, HEIGHT, 0x1234);
-    osg::Camera*     camera = gui->createParentOrthoCamera();
+    AnimtkViewerGUI* gui    = new AnimtkViewerGUI(&viewer, WIDTH, HEIGHT, 0x1234, hasAnim);
+    
+	osg::Camera*     camera = gui->createParentOrthoCamera();
     
     node->setNodeMask(0x0001);
 
@@ -162,13 +168,15 @@ int main(int argc, char** argv)
     viewer.addEventHandler(new AnimtkKeyEventHandler());
     viewer.addEventHandler(new osgViewer::StatsHandler());
     viewer.addEventHandler(new osgViewer::WindowSizeHandler());
+	
     viewer.addEventHandler(new osgGA::StateSetManipulator(viewer.getCamera()->getOrCreateStateSet()));
-    viewer.addEventHandler(new osgWidget::MouseHandler(gui));
+    
+	viewer.addEventHandler(new osgWidget::MouseHandler(gui));
     viewer.addEventHandler(new osgWidget::KeyboardHandler(gui));
     viewer.addEventHandler(new osgWidget::ResizeHandler(gui, camera));
     viewer.setSceneData(group.get());
 
     viewer.setUpViewInWindow(40, 40, WIDTH, HEIGHT);
 
-    return viewer.run();
+    return viewer.run(hasAnim);
 }

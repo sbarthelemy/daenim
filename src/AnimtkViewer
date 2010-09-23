@@ -58,12 +58,15 @@ public:
 
     bool play() 
     {
-        if(_focus < _amv.size()) 
-        {
-            std::cout << "Play " << _amv[_focus] << std::endl;
-            _model->playAnimation(_map[_amv[_focus]].get());
-            return true;
-        }
+		if (!(_model->isPlaying(_map[_amv[_focus]].get()))) 
+		{
+			if(_focus < _amv.size()) 
+			{
+				std::cout << "Play " << _amv[_focus] << std::endl;
+				_model->playAnimation(_map[_amv[_focus]].get());
+				return true;
+			}
+		}
 
         return false;
     }
@@ -104,6 +107,11 @@ public:
     {
         return _amv[_focus];
     }
+
+	osgAnimation::Animation *getCurrentAnimation()
+	{
+		return _map[_amv[_focus]].get();
+	}
 
     const AnimationMapVector& getAnimationMap() const 
     {

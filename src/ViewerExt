@@ -1,0 +1,48 @@
+/*
+ *  Viewer_ext.h
+ *  OpenSceneGraph
+ *
+ *  Created by Benjamin Bozou on 18/02/10.
+ *  Copyright 2010 __MyCompanyName__. All rights reserved.
+ *
+ */
+
+#ifndef OSGVIEWER_Viewer_ext
+#define OSGVIEWER_Viewer_ext
+
+#include <osg/ArgumentParser>
+#include <osgGA/EventVisitor>
+#include <osgUtil/UpdateVisitor>
+#include <osgViewer/GraphicsWindow>
+#include <osgViewer/View>
+#include <osgViewer/Viewer>
+#include <osgAnimation/Keyframe>
+
+namespace osgViewer {
+
+class OSGVIEWER_EXPORT ViewerExt : public osgViewer::Viewer
+{
+	public:
+	
+		ViewerExt(osg::ArgumentParser& arguments);
+		void setSpeed(float speed);
+		float getSpeed();
+		virtual int run(bool hasAnim);
+		void setPause(bool);
+		
+		void setCurrentTime(float time);
+		float getCurrentTime(void);
+
+		void setFrame(int frame);
+		int getFrame(void);
+
+	private:
+		float _speed, _currentTime, _totalTime;
+		float *frameTimes;
+		int _currentFrame, _totalFrames;
+		bool _pause;
+		
+	};
+}
+
+#endif
