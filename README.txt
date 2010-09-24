@@ -42,7 +42,7 @@ Build
 
 ::
 
-    cd ColladaTools
+    cd daenim
     mkdir build
     cd build
     cmake ..
