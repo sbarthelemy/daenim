@@ -9,6 +9,10 @@ set(LIBRARY_OUTPUT_PATH ${daenim_BINARY_DIR}/lib)
 include(InstallRequiredSystemLibraries)
 
 add_subdirectory(src)
+install(
+    DIRECTORY "${daenim_SOURCE_DIR}/data/Icons"
+    RUNTIME
+    DESTINATION share/daenim/Icons)
 
 # Packaging
 

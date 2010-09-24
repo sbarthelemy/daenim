@@ -20,7 +20,11 @@ target_link_libraries(
     ${OSGWIDGET_LIBRARY}
     ${OSGANIMATION_LIBRARY}
 )
-#SET(TARGET_ADDED_LIBRARIES osgAnimation osgWidget)
+set_target_properties(
+    daenim
+    PROPERTIES COMPILE_DEFINITIONS
+    INSTALL_PREFIX=${INSTALL_PREFIX}
+)
 
 # install
 

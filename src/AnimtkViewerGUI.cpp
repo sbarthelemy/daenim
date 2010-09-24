@@ -27,8 +27,9 @@
 #define SPEED_SLOTS	13
 #define FONT_COLOR	1.0f, 1.0f, 1.0f, 1.0f
 
+#define INSTALL_PREFIX "/usr/local"
 
-const std::string IMAGE_PATH = "/usr/local/share/OpenSceneGraph/Icons";
+const std::string IMAGE_PATH = INSTALL_PREFIX + "/share/OpenSceneGraph/Icons";
 
 template <class T>
 struct Sampler: public osg::Drawable::UpdateCallback 
