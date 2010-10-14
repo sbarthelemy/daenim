@@ -16,14 +16,20 @@ add_executable(
 )
 target_link_libraries(
     daenim
-    ${OSG_LIBRARY}
-    ${OSGWIDGET_LIBRARY}
-    ${OSGANIMATION_LIBRARY}
+    ${OSG_LIBRARY_DEBUG}
+    ${OSGWIDGET_LIBRARY_DEBUG}
+    ${OSGANIMATION_LIBRARY_DEBUG}
+    ${OSGVIEWER_LIBRARY_DEBUG}
+    ${OSGGA_LIBRARY_DEBUG}
+    ${OSGUTIL_LIBRARY_DEBUG}
+    ${OSGDB_LIBRARY_DEBUG}
+    ${OSGTEXT_LIBRARY_DEBUG}
+    ${OPENTHREADS_LIBRARY_DEBUG}
 )
 set_target_properties(
     daenim
     PROPERTIES COMPILE_DEFINITIONS
-    INSTALL_PREFIX=${INSTALL_PREFIX}
+    INSTALL_PREFIX=${INSTALL_PREFIX} # necessary to locate button icons
 )
 
 # install

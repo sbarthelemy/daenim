@@ -11,8 +11,16 @@ include(InstallRequiredSystemLibraries)
 add_subdirectory(src)
 install(
     DIRECTORY "${daenim_SOURCE_DIR}/data/Icons"
-    RUNTIME
-    DESTINATION share/daenim/Icons)
+    DESTINATION share/daenim
+    FILE_PERMISSIONS
+        OWNER_READ OWNER_WRITE
+        GROUP_READ
+        WORLD_READ
+    DIRECTORY_PERMISSIONS
+        OWNER_READ OWNER_EXECUTE OWNER_WRITE
+        GROUP_READ GROUP_EXECUTE
+        WORLD_READ WORLD_EXECUTE
+)
 
 # Packaging
 

@@ -29,7 +29,7 @@
 
 #define INSTALL_PREFIX "/usr/local"
 
-const std::string IMAGE_PATH = INSTALL_PREFIX + "/share/daenim/Icons/";
+const std::string IMAGE_PATH = std::string(INSTALL_PREFIX) + "/share/daenim/Icons/";
 
 template <class T>
 struct Sampler: public osg::Drawable::UpdateCallback 
