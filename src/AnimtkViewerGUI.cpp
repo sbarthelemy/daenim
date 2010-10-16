@@ -346,7 +346,7 @@ void AnimtkViewerGUI::_setSpeedPos(float pos)
 	//printf("Pos %.2f => Slot %i, Percent %.2f, Speed %f\n", pos, slot, _speedPercent, possibleSpeed[slot]);
 	
 	char buffer[256];
-	sprintf(buffer, "x%.2f", possibleSpeed[slot]);
+	//sprintf(buffer, "x%.2f", possibleSpeed[slot]);
 	_speedLabel->setLabel(buffer);
 	
 	// Ajuster le speedPercent
