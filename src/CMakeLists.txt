@@ -38,13 +38,14 @@ install(
     TARGETS daenim
     RUNTIME
     DESTINATION bin)
-
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/FixBundle.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
-    @ONLY
-)
-install(
-    SCRIPT
-    ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
-)
+if (APPLE)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/FixBundle.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
+        @ONLY
+    )
+    install(
+        SCRIPT
+        ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
+    )
+endif (APPLE)
