@@ -10,7 +10,7 @@ include(InstallRequiredSystemLibraries)
 
 add_subdirectory(src)
 install(
-    DIRECTORY "${daenim_SOURCE_DIR}/data/Icons"
+    DIRECTORY ${daenim_SOURCE_DIR}/data/Icons
     DESTINATION share/daenim
     FILE_PERMISSIONS
         OWNER_READ OWNER_WRITE
@@ -21,6 +21,41 @@ install(
         GROUP_READ GROUP_EXECUTE
         WORLD_READ WORLD_EXECUTE
 )
+
+function(get_version)
+    # Returns the version as defined by ``git describe``, or None."""
+    find_package(Git)
+    if (GIT_FOUND) #TODO : check we are in a git repository
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} describe --match v*.*.*
+            WORKING_DIRECTORY ${daenim_SOURCE_DIR}
+            RESULT_VARIABLE ERROR_CODE
+            OUTPUT_VARIABLE VERSION_STRING
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+    if(ERROR_CODE EQUAL 0)
+            set(VERSION_FOUND TRUE)
+            string(
+                REGEX MATCH
+                "^v([0-9]+)[.]([0-9]+)[.](.*)"
+                FOO
+                ${VERSION_STRING}
+            )
+            set(DAENIM_VERSION_MAJOR ${CMAKE_MATCH_1})
+            set(DAENIM_VERSION_MINOR ${CMAKE_MATCH_2})
+            set(DAENIM_VERSION_PATCH ${CMAKE_MATCH_3})
+        endif ()
+    endif ()
+    if (VERSION_FOUND)
+        configure_file(
+            ${daenim_SOURCE_DIR}/version.cmake.in
+            ${daenim_SOURCE_DIR}/version.cmake)
+    else ()
+        include(version.cmake)
+    endif ()
+endfunction(get_version)
+
+get_version()
 
 # Packaging
 

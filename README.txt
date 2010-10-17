@@ -28,15 +28,17 @@ Build from source
 Prerequisites
 -------------
 
-On Ubuntu lucid lynx, we use OSG 2.9.8 available on a PPA::
+The only prerequisites is openscenegraph 2.9.9 with collada support.
+
+On Ubuntu lucid lynx, we use OSG 2.9.9 available on dedicated PPA::
 
     sudo add-apt-repository ppa:barthelemy/collada
     sudo apt-get update
     sudo aptitude install cmake libopenscenegraph-dev
 
 
-On Mac os X, the only available version of OpenSceneGraph via
-`macports <http://www.macports.org/>`_ is 2.9.7 while we need 2.9.8.
+On Mac os X, one needs to build OSG manually. collada-dom is available through
+`macports <http://www.macports.org/>`_.
 
 FIXME: add Windows details
 
@@ -46,8 +48,7 @@ Build
 ::
 
     cd daenim
-    mkdir build
-    cd build
-    cmake ..
+    mkdir ../daenim-build
+    cd ../daenim-build
+    cmake ../daenim
     make
-
