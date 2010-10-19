@@ -55,6 +55,9 @@ function(get_version)
         set(${PROJECT_NAME}_VERSION_MAJOR ${CMAKE_MATCH_1} PARENT_SCOPE)
         set(${PROJECT_NAME}_VERSION_MINOR ${CMAKE_MATCH_2} PARENT_SCOPE)
         set(${PROJECT_NAME}_VERSION_PATCH ${CMAKE_MATCH_3} PARENT_SCOPE)
+        set(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1} PARENT_SCOPE)
+        set(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2} PARENT_SCOPE)
+        set(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3} PARENT_SCOPE)
         message(STATUS "project: " ${PROJECT_NAME})
         message(STATUS "version: " ${CMAKE_MATCH_0})
     endif()
@@ -64,8 +67,14 @@ get_version()
 
 # Packaging
 
-# TODO: set the following options:
-#CPACK_RESSOURCE_FILE_WELCOME
-#CPACK_RESSOURCE_FILE_README
+set(CPACK_SOURCE_IGNORE_FILES "/\\\\.git/" "/\\\\.DS_Store" ".*~" "\\\\.swp$")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+# generate source tarball compatible with debian naming scheme
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "daenim_${daenim_VERSION}")
 #CPACK_RESSOURCE_FILE_LICENSE
+#CPACK_RESSOURCE_FILE_WELCOME
+set(CPACK_RESSOURCE_FILE_README ${daenim_SOURCE_DIR}/README.txt)
+if(APPLE)
+    set(CPACK_GENERATOR "PackageMaker")
+endif()
 include(CPack)
