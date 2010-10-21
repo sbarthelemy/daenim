@@ -27,7 +27,7 @@ target_link_libraries(
 set_target_properties(
     daenim
     PROPERTIES COMPILE_DEFINITIONS
-    INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} # necessary to locate button icons
+    INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}" # necessary to locate button icons
 )
 
 # install

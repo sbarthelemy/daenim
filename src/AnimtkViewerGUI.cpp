@@ -27,7 +27,9 @@
 #define SPEED_SLOTS	13
 #define FONT_COLOR	1.0f, 1.0f, 1.0f, 1.0f
 
+#ifndef INSTALL_PREFIX
 #define INSTALL_PREFIX "/usr/local"
+#endif
 
 const std::string IMAGE_PATH = std::string(INSTALL_PREFIX) + "/share/daenim/Icons/";
 
