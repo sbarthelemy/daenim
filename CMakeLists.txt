@@ -60,6 +60,8 @@ function(get_version)
         set(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3} PARENT_SCOPE)
         message(STATUS "project: " ${PROJECT_NAME})
         message(STATUS "version: " ${CMAKE_MATCH_0})
+    else()
+        message(WARNING "could not find the ${PROJECT_NAME} version. You should either add a VERSION.txt file or ensure git tags are reachable")
     endif()
 endfunction(get_version)
 
