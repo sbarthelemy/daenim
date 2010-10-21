@@ -1,4 +1,4 @@
-find_package(OSG)
+find_package(OSG REQUIRED)
 
 # build
 
