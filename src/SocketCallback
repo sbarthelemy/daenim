@@ -1,0 +1,54 @@
+/* -*-c++-*- 
+
+   Authors:
+
+   Joseph Salini  <josephsalini@gmail.com>
+*/
+
+#ifndef SOCKETCALLBACK_H
+#define SOCKETCALLBACK_H
+
+
+#include <iostream>
+#include <stdio.h>
+#include <map>
+
+#include <osg/MatrixTransform>
+
+#ifdef UNIX
+#include <netdb.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include<string.h>
+
+#define SOCKET unsigned int
+#define SOCKADDR_IN struct sockaddr_in
+#define SOCKADDR struct sockaddr
+#elif WIN32
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib")
+#endif
+
+
+SOCKET OpenPort(const char* _host, const int _port);
+void ClosePort(SOCKET sock);
+
+
+#define N 2048
+class SocketCallback : public osg::NodeCallback 
+{
+public:
+    SOCKET s;
+    std::map<std::string, osg::MatrixTransform*> validNode;
+
+    SocketCallback(osg::Node* node, SOCKET _s);
+    virtual ~SocketCallback();
+
+    void parse(osg::Node* curNode);
+    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+};
+
+#endif
+
+

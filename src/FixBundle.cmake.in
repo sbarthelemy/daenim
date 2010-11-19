@@ -10,8 +10,8 @@ set(bundle
 # (Dynamically loaded PlugIns, for example.)
 set(other_libs "")
 
-# Set dirs to a list of directories whwere prerequisite libraries
+# Set dirs to a list of directories where prerequisite libraries
 # may be found:
-set(dirs "@KIBRARY_OUTPUT_PATH@")
+set(dirs "@LIBRARY_OUTPUT_PATH@;/usr/local/lib;/usr/lib")
 fixup_bundle ("${bundle}" "${other_libs}" "${dirs}")
 

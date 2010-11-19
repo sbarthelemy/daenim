@@ -7,42 +7,46 @@
  *
  */
 
-#ifndef OSGVIEWER_Viewer_ext
-#define OSGVIEWER_Viewer_ext
+#ifndef OSGVIEWER_VIEWER_EXT
+#define OSGVIEWER_VIEWER_EXT
 
-#include <osg/ArgumentParser>
-#include <osgGA/EventVisitor>
-#include <osgUtil/UpdateVisitor>
-#include <osgViewer/GraphicsWindow>
-#include <osgViewer/View>
 #include <osgViewer/Viewer>
-#include <osgAnimation/Keyframe>
+#include <osgAnimation/Animation>
+
 
 namespace osgViewer {
 
-class OSGVIEWER_EXPORT ViewerExt : public osgViewer::Viewer
+class ViewerExt : public osgViewer::Viewer
 {
-	public:
-	
-		ViewerExt(osg::ArgumentParser& arguments);
-		void setSpeed(float speed);
-		float getSpeed();
-		virtual int run(bool hasAnim);
-		void setPause(bool);
-		
-		void setCurrentTime(float time);
-		float getCurrentTime(void);
+public:
+    ViewerExt();
+    void setTimelineFromAnimation(osgAnimation::Animation*);
+    virtual int run();
+    
 
-		void setFrame(int frame);
-		int getFrame(void);
+    //------ Get/Set ------//
+    void setPause(bool);                // Pause state
+    bool getPause();
 
-	private:
-		float _speed, _currentTime, _totalTime;
-		float *frameTimes;
-		int _currentFrame, _totalFrames;
-		bool _pause;
-		
-	};
-}
+    void  setSpeed(float speed);        // animation speed
+    float getSpeed();
+
+    void  setCurrentTime(float time);   // current time
+    float getCurrentTime();
+
+    void  setFrame(int frame);          // current frame
+    int   getFrame();
+
+    
+
+private:
+    float _speed;
+    float _currentTime , _totalTime;
+    int   _currentFrame, _totalFrame;
+    float *frameTimes;
+    bool  _pause;
+};
+
+} //namespace
 
 #endif

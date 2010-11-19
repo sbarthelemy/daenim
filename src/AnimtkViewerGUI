@@ -22,52 +22,80 @@
 #ifndef ANIMTKVIEWERGUI_H
 #define ANIMTKVIEWERGUI_H
 
+#include "ViewerExt"
+
 #include <osgWidget/WindowManager>
+#include <osgAnimation/EaseMotion>
 
-class AnimtkViewerGUI: public osgWidget::WindowManager {
-    	osg::ref_ptr<osgWidget::Box> _buttonBox;
-    	osg::ref_ptr<osgWidget::Box> _listBox;
-    	osg::ref_ptr<osgWidget::Box> _labelBox, _speedLabelBox, _timeLabelBox, _frameLabelBox;
-	osg::ref_ptr<osgWidget::Box> _sliderBox, _sliderFrontBox, _speedBox, _speedFrontBox;
-	osg::ref_ptr<osgWidget::NullWidget> _sliderCenter, _sliderLeft, _speedLeft, _speedCenter;
+#include <osgAnimation/BasicAnimationManager>
 
-	osgWidget::Label* _speedLabel, *_timeLabel, *_frameLabel;
-	
-	float _sliderPos, _sliderPercent, _speedPos, _speedPercent;
+class AnimtkViewerGUI: public osgWidget::WindowManager
+{
+public:
+    AnimtkViewerGUI(osgViewer::Viewer*, unsigned int, unsigned int, osgAnimation::BasicAnimationManager*);
+
+private:
+    void setAnimationManager();
+    void accept(osg::NodeVisitor &nv);
+
+    osgViewer::ViewerExt* viewer;
+    //------------- For Animation --------------//
+    osg::ref_ptr<osgAnimation::BasicAnimationManager>   _basicAnimManager;
+    osgAnimation::Animation*                             animation;
+    float                                                animDuration;
+
+    osg::ref_ptr<osgWidget::Box>        _buttonBox;
+    osg::ref_ptr<osgWidget::Box>        _sliderBarBox, _sliderCursorBox;
+    osg::ref_ptr<osgWidget::Box>        _speedBarBox, _speedCursorBox;
+    osg::ref_ptr<osgWidget::Box>        _infoLabelBox;
+    
+    osg::ref_ptr<osgWidget::Label>      _speedLabel, _timeLabel, _frameLabel;
+    
+
+    float  _sliderPos, _sliderPercent, _speedPos, _speedPercent;
 
 protected:
-	bool _hasAnim;
     osgWidget::Widget* _createButton(const std::string&);
-    
     bool _buttonPush(osgWidget::Event&);
-    bool _listMouseHover(osgWidget::Event&);
-	
-	void _setSliderTime(float time);
-	void _setSliderPos(float pos);
-	bool _sliderDown(osgWidget::Event& ev) ;
-	bool _sliderDrag(osgWidget::Event& ev) ;
-	bool _sliderUp(osgWidget::Event& ev) ;
-	
-	void _createSlider();
-    void _createButtonBox();
-    void _createListBox();
-    void _createLabelBox();
-	void _createSpeedBox();
-	
-	bool _speedDown(osgWidget::Event& ev);
-	bool _speedDrag(osgWidget::Event& ev);
-	bool _speedUp(osgWidget::Event& ev);
-	void _setSpeedPos(float pos);
 
-	int getSpeedSlot(void);
-	void setSpeedSlot(int i);
+    //---------------- Interface Setup -------------------//
+    void _createButtonBoundingBox();
+    void _createSliderBoundingBox();
+    void _createSpeedBoundingBox();
+    void _createInfoBar();
 
-	
+    bool _speedDown(osgWidget::Event& ev);
+    bool _speedDrag(osgWidget::Event& ev);
+    void _setSpeedPos(float pos);
+    int  getSpeedSlot();
+    void setSpeedSlot(int i);
 
-public:
-    AnimtkViewerGUI(osgViewer::View*, float, float, unsigned int, bool hasAnim);
-	
-	void accept(osg::NodeVisitor &nv);
+    bool _sliderDown(osgWidget::Event& ev) ;
+    bool _sliderDrag(osgWidget::Event& ev) ;
+    void _setSliderPos(float pos);
+    void _setSliderTime(float time);
+
+    void setPause(bool state);
 };
+
+
+struct ButtonFunctor: public osg::Drawable::UpdateCallback 
+{
+    osgAnimation::OutQuadMotion _motion;
+    const float                 _speed;
+    float                       _direction;
+    float                       _previous;
+
+    ButtonFunctor();
+
+    bool enter(osgWidget::Event& e);
+    bool leave(osgWidget::Event& e);
+    void update(osg::NodeVisitor* nv , osg::Drawable* geom) ;
+    void update(float t, osgWidget::Widget* w);
+};
+
+
+
+
 
 #endif
