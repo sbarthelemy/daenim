@@ -29,11 +29,29 @@
 #define FONT_SIZE       25.0f
 
 
+#if defined WIN32
+    #include <windows.h>
+    #define APP_PATH_FINDER GetModuleFileName
+    #define FIRST_ARG NULL
+    #define ICON_PATH "Icons\\"
+#elif defined UNIX
+    #include <unistd.h>
+    #define APP_PATH_FINDER readlink
+    #define FIRST_ARG "/proc/self/exe"
+    #define ICON_PATH "../share/daenim/Icons/"
+#endif
+std::string getIconAbsolutePath()
+{
+    char result[2048];
+    APP_PATH_FINDER( FIRST_ARG, result, 2048 );
+    std::string str_result;
+    str_result = result;
+    size_t found = str_result.find_last_of("/\\");
+    return str_result.substr(0,found+1) + ICON_PATH;
+}
 
+const std::string IMAGE_PATH = getIconAbsolutePath();
 
-//TODO: change if windows!!!
-#define INSTALL_PREFIX "/usr/local"
-const std::string IMAGE_PATH = std::string(INSTALL_PREFIX) + "/share/daenim/Icons/";
 
 #define SPEED_SLOTS     13
 float possibleSpeed[SPEED_SLOTS] = {0.0f, 0.05f, 0.1f, 0.25f, 0.5f, 0.75f, 1.0f, 1.5f, 2.0f, 3.0f, 4.0f, 5.0f, 10.0f};

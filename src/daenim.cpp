@@ -58,7 +58,6 @@ struct AnimationManagerFinder : public osg::NodeVisitor
 
 
 
-
 int main(int argc, char** argv) 
 {
     //----------------- Get and parse arguments -------------------//
