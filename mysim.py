@@ -43,10 +43,9 @@ class SocketComObs(Observer):
 
 
 ## WORLD
-from arboris.robots import simplearm, icub, human36
+from arboris.robots import simplearm, human36
 w = World()
-#simplearm.add_simplearm(w)
-w._up[:] = [0,0,1]; icub.add(w)
+simplearm.add_simplearm(w)
 #human36.add_human36(w)
 
 
