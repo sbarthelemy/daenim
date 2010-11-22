@@ -25,9 +25,7 @@ class SocketComObs(Observer):
         msg = ""
         for b in self.world.getbodies():
             H = b.pose
-            msg += b.name + " " + str(H[0,0]) + " " + str(H[0,1]) + " " + str(H[0,2]) + " " + str(H[0,3]) + \
-                                  str(H[1,0]) + " " + str(H[1,1]) + " " + str(H[1,2]) + " " + str(H[1,3]) + \
-                                  str(H[2,0]) + " " + str(H[2,1]) + " " + str(H[2,2]) + " " + str(H[2,3]) + "\n"
+            msg += b.name + " " + " ".join([str(round(v,5)) for v in H[0:3,:].reshape(12)]) + "\n"
 
         try:
             self.conn.send(msg)
@@ -45,17 +43,18 @@ class SocketComObs(Observer):
 
 
 ## WORLD
-from arboris.robots import simplearm
+from arboris.robots import simplearm, icub, human36
 w = World()
-simplearm.add_simplearm(w)
-#icub.add(w)
+#simplearm.add_simplearm(w)
+w._up[:] = [0,0,1]; icub.add(w)
+#human36.add_human36(w)
 
 
 ## INIT
 joints = w.getjoints()
-joints[0].gpos[:] = .5
-joints[1].gpos[:] = .5
-joints[2].gpos[:] = .5
+#joints[0].gpos[:] = .5
+#joints[1].gpos[:] = .5
+#joints[2].gpos[:] = .5
 
 w.update_dynamic()
 

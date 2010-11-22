@@ -47,7 +47,8 @@ void ClosePort(SOCKET sock) {
 
 
 
-
+//#define MAX_LEN 2048
+#define MAX_LEN 4096
 SocketCallback::SocketCallback(osg::Node* node, SOCKET _s):
 s(_s)
 {
@@ -78,17 +79,19 @@ void SocketCallback::parse(osg::Node* curNode)
 
 void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 {
-    char msg[N];
-    memset(msg, 0x0, N);
+    char msg[MAX_LEN];
+    memset(msg, 0x0, MAX_LEN);
 #if defined WIN32
-    int numRead = recv(s, msg, N, 0); //MSG_WAITALL
+    int numRead = recv(s, msg, MAX_LEN, 0); //MSG_WAITALL
 #elif defined UNIX
-    int numRead = recv(s, msg, N, MSG_DONTWAIT);
+    int numRead = recv(s, msg, MAX_LEN, MSG_DONTWAIT);
 #endif
     
     if (numRead>=0) {
         //printf("Message size: %i\nMessage: %s;\n\n", numRead, msg);
-        if (strncmp(msg, "close connection", 16) == 0) {
+        //std::cout<<"Message size: "<<numRead<<std::endl<<msg<<std::endl<<std::endl;
+        if (strncmp(msg, "close connection", 16) == 0)
+        {
             shutdown(s,2);
         }
         else {

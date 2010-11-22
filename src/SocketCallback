@@ -35,7 +35,6 @@ SOCKET OpenPort(const char* _host, const int _port);
 void ClosePort(SOCKET sock);
 
 
-#define N 2048
 class SocketCallback : public osg::NodeCallback 
 {
 public:
