@@ -32,6 +32,11 @@ SOCKET OpenPort(const char* _host, const int _port) {
         printf("Connection problem!!!\n");
     };
 
+#if defined WIN32
+    u_long nonBlockingMode = 1;
+    ioctlsocket(sock, FIONBIO, &nonBlockingMode);
+#endif
+
     return sock;
 }
 
@@ -115,49 +120,5 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
     }
     traverse(node, nv); 
 }
-
-
-
-/*
-int main(int argc, char** argv) {
-    
-    char host[128] = "127.0.0.1";
-    int port=5554;
-    char daeFile[256] = "/home/joe/shapes.dae";
-    
-    int idx;
-    osg::ArgumentParser arg(&argc, argv);
-    
-    idx = arg.find("-host");
-    if (idx>=0) {
-        strcpy(host, arg[idx+1]);
-    }
-    idx = arg.find("-port");
-    if (idx>=0) {
-        port = atoi(arg[idx+1]);
-    }
-    idx = arg.find("-file");
-    if (idx>=0) {
-        strcpy(daeFile, arg[idx+1]);
-    }
-
-
-    SOCKET sock = OpenPort(host, port);
-
-    osgViewer::Viewer viewer;
-    viewer.setUpViewInWindow(600,100,640,480);
-
-    osg::Node* node = osgDB::readNodeFile(daeFile);
-    node->setUpdateCallback(new MyCallback(node, sock));
-
-    viewer.setSceneData(node);
-    viewer.run();
-    
-	ClosePort(sock);
-
-    return 0;
-}
-*/
-
 
 
