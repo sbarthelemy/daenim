@@ -48,12 +48,11 @@ w = World()
 simplearm.add_simplearm(w)
 #human36.add_human36(w)
 
-
 ## INIT
 joints = w.getjoints()
-#joints[0].gpos[:] = .5
-#joints[1].gpos[:] = .5
-#joints[2].gpos[:] = .5
+joints[0].gpos[:] = .5
+joints[1].gpos[:] = .5
+joints[2].gpos[:] = .5
 
 w.update_dynamic()
 
@@ -69,8 +68,7 @@ obs = []
 obs.append(PerfMonitor(True))
 write_collada_scene(w, "my_scene.dae", flat=True)
 
-obs.append(SocketComObs("daenim", "my_scene.dae")) #/home/joe/src/daenim/build/bin/
-
+obs.append(SocketComObs("daenim", "my_scene.dae"))
 
 
 ## SIMULATE

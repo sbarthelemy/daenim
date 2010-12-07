@@ -11,7 +11,7 @@
 
 #include <stdio.h>
 
-#include <osgGA/TrackballManipulator>
+
 
 using namespace osgViewer;
 
@@ -47,11 +47,6 @@ void ViewerExt::setTimelineFromAnimation(osgAnimation::Animation* animation)
 
 int ViewerExt::run()
 {
-    if (!getCameraManipulator() && getCamera()->getAllowEventFocus())
-    {
-        setCameraManipulator(new osgGA::TrackballManipulator());
-    }
-
     if (!isRealized())
     {
         realize();
