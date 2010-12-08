@@ -1,0 +1,21 @@
+/*  -*-c++-*- 
+ */
+
+#ifndef _KEYHANDLER_H
+#define _KEYHANDLER_H
+
+
+#include <osgGA/GUIEventHandler>
+
+class KeyEventHandler : public osgGA::GUIEventHandler
+{
+public:
+    KeyEventHandler();
+    bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa, osg::Object*, osg::NodeVisitor*);
+
+protected:
+
+    std::map<std::string, int> _actionKeys;
+};
+
+#endif

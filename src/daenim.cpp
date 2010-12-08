@@ -18,6 +18,7 @@
 
 #include "AnimtkViewerGUI"
 #include "ViewerExt"
+#include "KeyHandler"
 
 #include "SocketCallback"
 
@@ -29,6 +30,7 @@
 #include <osgAnimation/AnimationManagerBase>
 #include <osgAnimation/BasicAnimationManager>
 
+#include <osgGA/TrackballManipulator>
 
 
 struct AnimationManagerFinder : public osg::NodeVisitor
@@ -54,6 +56,24 @@ struct AnimationManagerFinder : public osg::NodeVisitor
         traverse(node);
     }
 };
+
+
+
+void parse(osg::Node* curNode, std::string prefix = "")
+{
+    if (curNode->getName() == "frame_arrows") curNode->setNodeMask(0x1);
+    if (curNode->getName() == "shape") curNode->setNodeMask(0x2);
+    if (curNode->getName() == "link") curNode->setNodeMask(0x4);
+
+    std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::hex<<curNode->getNodeMask() << std::endl;
+
+    osg::Group* curGroup = curNode->asGroup();
+    if (curGroup) {
+        for (unsigned int i = 0 ; i < curGroup->getNumChildren(); i ++) {
+            parse(curGroup->getChild(i), prefix + "--->");
+        }
+    }
+}
 
 
 
@@ -94,17 +114,19 @@ int main(int argc, char** argv)
 
     //----------------- Load data -------------------//
     osg::Group* rootGroup = new osg::Group();
-    osg::Group* fileNode  = osgDB::readNodeFile(daeFile)->asGroup();
+    osg::Node* fileNode  = osgDB::readNodeFile(daeFile);
     if(!fileNode)
     {
         std::cout << arguments.getApplicationName() <<": No data loaded" << std::endl;
         return 1;
     }
     rootGroup->addChild(fileNode);
-
+    parse(fileNode);
 
     //----------------- Create Viewer and interface -------------------//
     osgViewer::ViewerExt viewer;
+    viewer.addEventHandler(new KeyEventHandler());
+    
     if (communicationWithSocket)
     {
         SOCKET sock = OpenPort(host.c_str(), port);
@@ -134,6 +156,9 @@ int main(int argc, char** argv)
     //------------------- Init and Start Viewer -----------------------//
     viewer.setUpViewInWindow(x, y, width, height);
     viewer.setSceneData(rootGroup);
+
+    osgGA::TrackballManipulator* manipulator = new osgGA::TrackballManipulator();
+    viewer.setCameraManipulator(manipulator);
 
     return viewer.run();
 

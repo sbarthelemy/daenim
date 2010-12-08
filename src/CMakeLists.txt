@@ -18,6 +18,7 @@ add_executable(
     ViewerExt.cpp
     AnimtkViewerGUI.cpp
     SocketCallback.cpp
+    KeyHandler.cpp
 )
 target_link_libraries(
     daenim
