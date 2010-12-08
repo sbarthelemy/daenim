@@ -49,7 +49,7 @@ void ViewerExt::setTimelineFromAnimation(osgAnimation::Animation* animation)
         _totalFrame = 1;
         frameTimes = new float[_totalFrame];
         frameTimes[0] = 0.;
-        std::cout<<"Problem while loading animation: No channel found"<<std::endl;
+        std::cout<<"ERROR: Problem while loading animation: No channel found"<<std::endl;
     }
 }
 
