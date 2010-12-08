@@ -11,6 +11,8 @@
 
 #include <stdio.h>
 
+#include <osgAnimation/Channel>
+#include <osgAnimation/Sampler>
 
 
 using namespace osgViewer;
@@ -28,19 +30,26 @@ _pause(true)
 
 void ViewerExt::setTimelineFromAnimation(osgAnimation::Animation* animation)
 {
-
-    osgAnimation::FloatCubicBezierKeyframeContainer *kfc = (osgAnimation::FloatCubicBezierKeyframeContainer*)(animation->getChannels()[0]->getSampler()->getKeyframeContainer()); //WHY??????
-    
     _totalTime = animation->getDuration();
-    _totalFrame = kfc->size(); //TODO: pb if diff channel have diff nb of keyframes...
     
-    //TODO
-    std::cout<<"This animation has a duration of : "<<_totalTime<<" s with "<<_totalFrame<<" frames"<<std::endl;
-
-    frameTimes = new float[_totalFrame];
-    for (int i=0; i<_totalFrame; i++)
+    osgAnimation::ChannelList channels = animation->getChannels();
+    if (channels.size() > 0)
     {
-        frameTimes[i] = (*kfc)[i].getTime() - animation->getStartTime();
+        osgAnimation::FloatCubicBezierKeyframeContainer *kfc = (osgAnimation::FloatCubicBezierKeyframeContainer*)(channels[0]->getSampler()->getKeyframeContainer());
+        _totalFrame = kfc->size();
+        frameTimes = new float[_totalFrame];
+        for (int i=0; i<_totalFrame; i++)
+        {
+            frameTimes[i] = (*kfc)[i].getTime() - animation->getStartTime();
+        }
+        std::cout<<"Use first Channel to define frameTimes.\nThis animation has a duration of : "<<_totalTime<<" s with "<<_totalFrame<<" frames"<<std::endl;
+    }
+    else
+    {
+        _totalFrame = 1;
+        frameTimes = new float[_totalFrame];
+        frameTimes[0] = 0.;
+        std::cout<<"Problem while loading animation: No channel found"<<std::endl;
     }
 }
 
