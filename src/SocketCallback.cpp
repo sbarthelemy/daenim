@@ -98,6 +98,7 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
         if (strncmp(msg, "close connection", 16) == 0)
         {
             shutdown(s,2);
+            std::cout<<"SocketCallBack is shutted down"<<std::endl;
         }
         else {
             char * pch;

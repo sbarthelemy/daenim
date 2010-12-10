@@ -22,7 +22,7 @@ public:
     ViewerExt();
     void setTimelineFromAnimation(osgAnimation::Animation*);
     virtual int run();
-    
+    void takeSnapshot(char* imageName);
 
     //------ Get/Set ------//
     void setPause(bool);                // Pause state
@@ -40,6 +40,8 @@ public:
     
 
 private:
+    osg::Image* _image;
+
     float _speed;
     float _currentTime , _totalTime;
     int   _currentFrame, _totalFrame;

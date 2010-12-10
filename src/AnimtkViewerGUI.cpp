@@ -66,7 +66,7 @@ bool eatDrag(osgWidget::Event&)
 
 
 AnimtkViewerGUI::AnimtkViewerGUI(osgViewer::Viewer* ve, unsigned int w, unsigned int h, osgAnimation::BasicAnimationManager* basicAnimManager):
-osgWidget::WindowManager(ve, w, h, 0x1234, 0)
+osgWidget::WindowManager(ve, w, h, 0x80000000, 0)
 {
     viewer = (osgViewer::ViewerExt*)ve;
 

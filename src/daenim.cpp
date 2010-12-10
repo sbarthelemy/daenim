@@ -59,13 +59,17 @@ struct AnimationManagerFinder : public osg::NodeVisitor
 
 
 
+#include <osg/Material>
+#include <osg/BlendFunc>
+
 void parse(osg::Node* curNode, std::string prefix = "")
 {
     if (curNode->getName() == "frame_arrows") curNode->setNodeMask(0x1);
     if (curNode->getName() == "shape") curNode->setNodeMask(0x2);
     if (curNode->getName() == "link") curNode->setNodeMask(0x4);
+    if (curNode->getName() == "inertia") curNode->setNodeMask(0x8);
 
-    std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::hex<<curNode->getNodeMask() << std::endl;
+    //std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::endl;
 
     osg::Group* curGroup = curNode->asGroup();
     if (curGroup) {
@@ -159,6 +163,7 @@ int main(int argc, char** argv)
 
     osgGA::TrackballManipulator* manipulator = new osgGA::TrackballManipulator();
     viewer.setCameraManipulator(manipulator);
+    viewer.getCamera()->setCullMask(0xfffffff7);
 
     return viewer.run();
 

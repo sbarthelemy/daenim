@@ -41,6 +41,32 @@ class SocketComObs(Observer):
             pass
 
 
+from xml.etree.ElementTree import ElementTree, SubElement
+from arboris.massmatrix import principalframe, transport
+from arboris.visu_collada import find_by_id, QN, SHAPES, fix_namespace
+
+def add_inertia_in_collada(world, dae_filename):
+    tree = ElementTree(file=dae_filename)
+    
+    bodies = world.getbodies()[1:]
+    inertia = {}
+    for b in bodies:
+        H = principalframe(b.mass)
+        M = transport(b.mass, H)
+    
+        e = find_by_id(tree, b.name, QN("node"))
+        if e is not None:
+            node = SubElement(e, QN("node"), {"id":"inertia"})
+            matrix = SubElement(node, QN("matrix"), {'sid':'matrix'})
+            matrix.text = str(H.reshape(-1)).strip('[]')
+            scale = SubElement(node, QN('scale'))
+            scale.text = "{0} {1} {2}".format(M[0,0], M[1,1], M[2,2])
+            elem = SubElement(node, QN("instance_geometry"), {"url": SHAPES+"#sphere_80"})
+        
+    fix_namespace(tree)
+    tree.write(dae_filename, "utf-8")
+
+
 
 ## WORLD
 from arboris.robots import simplearm, human36
@@ -67,6 +93,7 @@ from arboris.visu_collada import write_collada_scene
 obs = []
 obs.append(PerfMonitor(True))
 write_collada_scene(w, "my_scene.dae", flat=True)
+add_inertia_in_collada(w, "my_scene.dae")
 
 obs.append(SocketComObs("daenim", "my_scene.dae"))
 

@@ -11,6 +11,9 @@
 
 #include <stdio.h>
 
+#include <osg/Camera>
+#include <osgDB/WriteFile>
+
 #include <osgAnimation/Channel>
 #include <osgAnimation/Sampler>
 
@@ -25,7 +28,8 @@ _currentFrame(0),
 _totalFrame(0),
 _pause(true)
 {
-
+    _image = new osg::Image();
+    this->getCamera()->attach(osg::Camera::COLOR_BUFFER, _image);
 }
 
 void ViewerExt::setTimelineFromAnimation(osgAnimation::Animation* animation)
@@ -35,12 +39,26 @@ void ViewerExt::setTimelineFromAnimation(osgAnimation::Animation* animation)
     osgAnimation::ChannelList channels = animation->getChannels();
     if (channels.size() > 0)
     {
-        osgAnimation::FloatCubicBezierKeyframeContainer *kfc = (osgAnimation::FloatCubicBezierKeyframeContainer*)(channels[0]->getSampler()->getKeyframeContainer());
+        osgAnimation::KeyframeContainer *kfc = channels[0]->getSampler()->getKeyframeContainer();
+        
         _totalFrame = kfc->size();
         frameTimes = new float[_totalFrame];
+        
         for (int i=0; i<_totalFrame; i++)
         {
-            frameTimes[i] = (*kfc)[i].getTime() - animation->getStartTime();
+            float time_value;
+            if (channels[0]->getName() == "matrix")
+            {
+                osgAnimation::MatrixKeyframeContainer* mkfc = (osgAnimation::MatrixKeyframeContainer*)kfc;
+                time_value = (*mkfc)[i].getTime();
+            }
+            else if (channels[0]->getName() == "translate")
+            {
+                osgAnimation::Vec3KeyframeContainer* mkfc = (osgAnimation::Vec3KeyframeContainer*)kfc;
+                time_value = (*mkfc)[i].getTime();
+            }
+            frameTimes[i] = time_value;
+            std::cout<<i<<": "<<time_value<<std::endl;
         }
         std::cout<<"Use first Channel to define frameTimes.\nThis animation has a duration of : "<<_totalTime<<" s with "<<_totalFrame<<" frames"<<std::endl;
     }
@@ -152,5 +170,9 @@ void ViewerExt::setFrame(int frame)
 }
 
 
+void ViewerExt::takeSnapshot(char* imageName)
+{
+    osgDB::writeImageFile(*_image, imageName);
+}
 
 
