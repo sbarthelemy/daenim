@@ -22,7 +22,7 @@ public:
     ViewerExt();
     void setTimelineFromAnimation(osgAnimation::Animation*);
     virtual int run();
-    void takeSnapshot(char* imageName);
+    void takeSnapshot(std::string imageName);
 
     //------ Get/Set ------//
     void setPause(bool);                // Pause state
@@ -36,6 +36,7 @@ public:
 
     void  setFrame(int frame);          // current frame
     int   getFrame();
+    int   getTotalFrame();
 
     
 

@@ -134,6 +134,21 @@ float ViewerExt::getSpeed()
 void ViewerExt::setCurrentTime(float time)
 {
     _currentTime = time;
+    for (int i=0; i<_totalFrame-1; i++)
+    {
+        if ( (frameTimes[i] <= _currentTime) && (_currentTime < frameTimes[i+1]) )
+        {
+            if (_currentTime - frameTimes[i] <= frameTimes[i+1] - _currentTime)
+            {
+                _currentFrame = i;
+            }
+            else
+            {
+                _currentFrame = i+1;
+            }
+            break;
+        }
+    }
 }
 
 float ViewerExt::getCurrentTime()
@@ -143,16 +158,14 @@ float ViewerExt::getCurrentTime()
 
 
 
-int ViewerExt::getFrame(void)
+int ViewerExt::getFrame()
 {
-    for (int i=0; i<_totalFrame - 1; i++)
-    {
-        if ((frameTimes[i] <= _currentTime) && (_currentTime < frameTimes[i+1]))
-        {
-            return i;
-        }
-    }
-    return _totalFrame - 1; // It is the last frame
+    return _currentFrame;
+}
+
+int ViewerExt::getTotalFrame()
+{
+    return _totalFrame;
 }
 
 void ViewerExt::setFrame(int frame)
@@ -167,10 +180,11 @@ void ViewerExt::setFrame(int frame)
         _currentFrame = _totalFrame - 1;    // Boucle
     }
     _currentTime = frameTimes[_currentFrame];
+    std::cout<<"set frame -> "<<_currentFrame << " ("<<_currentTime<<" s)"<<std::endl;
 }
 
 
-void ViewerExt::takeSnapshot(char* imageName)
+void ViewerExt::takeSnapshot(std::string imageName)
 {
     osgDB::writeImageFile(*_image, imageName);
 }

@@ -39,6 +39,8 @@
     #define APP_PATH_FINDER readlink
     #define FIRST_ARG "/proc/self/exe"
     #define ICON_PATH "../share/daenim/Icons/"
+    #include <sys/stat.h>
+    #include <sys/types.h> //TODO
 #endif
 std::string getIconAbsolutePath()
 {
@@ -160,10 +162,9 @@ bool AnimtkViewerGUI::_buttonPush(osgWidget::Event& ev)
         setPause(!viewer->getPause());
     }
     else if(name == "stop") {
-        viewer->setCurrentTime(0.0f);
-        viewer->setSpeed(1.0f);
         setPause(true);
-        
+        viewer->setFrame(0);
+        viewer->setSpeed(1.0f);
     }
     else if(name == "rap")
     {
@@ -182,6 +183,10 @@ bool AnimtkViewerGUI::_buttonPush(osgWidget::Event& ev)
     {
         setPause(true);
         viewer->setFrame(viewer->getFrame()-1);
+    }
+    else if(name == "rec")
+    {
+        startRecordAnimation();
     }
     else
     {
@@ -214,6 +219,7 @@ void AnimtkViewerGUI::_createButtonBoundingBox()
     _buttonBox->addWidget( _createButton("back") );
     _buttonBox->addWidget( _createButton("next") );
     _buttonBox->addWidget( _createButton("stop") );
+    _buttonBox->addWidget( _createButton("rec") );
     _buttonBox->addWidget(osg::clone(space, "space1", osg::CopyOp::DEEP_COPY_ALL));
 
     addChild(_buttonBox.get());
@@ -386,9 +392,10 @@ void AnimtkViewerGUI::_setSliderPos(float pos)
     _sliderPos = pos;
 
     _sliderPercent = pos / (getWidth());
-    _sliderCursorBox->setX(_sliderPercent*(getWidth()-5));
+    _sliderCursorBox->setX(_sliderPercent*(getWidth())); //-5
 
     viewer->setCurrentTime(animDuration*_sliderPercent);
+    //std::cout<<"in setSliderPos"<<std::endl;
 }
 
 void AnimtkViewerGUI::_setSliderTime(float time)
@@ -401,6 +408,7 @@ void AnimtkViewerGUI::_setSliderTime(float time)
     char buffer[256];
     sprintf(buffer, "%02d:%02d.%03d", (int)(time/60), ((int)time)%60, ((int)(time*1000))%1000);
     _timeLabel->setLabel(buffer);
+    //std::cout<<"in setSliderTime"<<std::endl;
 }
 
 void AnimtkViewerGUI::setPause(bool state)
@@ -416,6 +424,12 @@ void AnimtkViewerGUI::setPause(bool state)
     }
 }
 
+
+void AnimtkViewerGUI::startRecordAnimation()
+{
+    setPause(true);
+    viewer->getCamera()->setUpdateCallback(new SnapshotCallback(viewer));
+}
 
 
 
@@ -463,3 +477,49 @@ void ButtonFunctor::update(float t, osgWidget::Widget* w)
 
 
 
+
+/*=======================================
+ * SnapshotCallback
+ *=====================================*/
+SnapshotCallback::SnapshotCallback(osgViewer::ViewerExt* _viewer)
+{
+    viewer = _viewer;
+    _currentFrame = 0;
+    mkdir("daenim_recordAnimation", 0755);
+    
+    osg::Node::NodeMask mask = viewer->getCamera()->getCullMask();
+    mask &= ~(1 << 31);
+    viewer->getCamera()->setCullMask(mask);
+    
+    
+    viewer->setCurrentTime(0.0f);
+}
+
+SnapshotCallback::~SnapshotCallback()
+{
+}
+
+void SnapshotCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
+{
+    //std::cout<<"in callback "<< node->className() <<std::endl;
+    //osg::Camera* cam = (osg::Camera*)node;
+    //std::cout<<viewer->getFrame()<< " -- "<< _currentFrame<< " "<<std::hex<<cam->getCullMask() <<std::endl;
+
+    if (viewer->getFrame() == _currentFrame)
+    {
+        //std::cout<<"has frame "<<viewer->getFrame()<<std::endl;
+        char buffer[64];
+        sprintf(buffer, "./daenim_recordAnimation/%06i.png", _currentFrame);
+        viewer->takeSnapshot(buffer);
+        _currentFrame++;
+        viewer->setFrame(_currentFrame);
+        if (_currentFrame >= viewer->getTotalFrame())
+        {
+            std::cout<<"remove SnapshotCallback"<<std::endl;
+            osg::Node::NodeMask mask = viewer->getCamera()->getCullMask();
+            mask |= (1 << 31);
+            viewer->getCamera()->setCullMask(mask);
+            node->removeUpdateCallback(this);
+        }
+    }
+}

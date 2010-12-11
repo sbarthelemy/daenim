@@ -76,6 +76,7 @@ protected:
     void _setSliderTime(float time);
 
     void setPause(bool state);
+    void startRecordAnimation();
 };
 
 
@@ -97,5 +98,17 @@ struct ButtonFunctor: public osg::Drawable::UpdateCallback
 
 
 
+class SnapshotCallback : public osg::NodeCallback 
+{
+private:
+    osgViewer::ViewerExt* viewer;
+    int                   _currentFrame;
+
+public:
+    SnapshotCallback(osgViewer::ViewerExt* _viewer);
+    virtual ~SnapshotCallback();
+
+    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+};
 
 #endif
