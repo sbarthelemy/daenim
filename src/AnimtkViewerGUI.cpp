@@ -485,7 +485,12 @@ SnapshotCallback::SnapshotCallback(osgViewer::ViewerExt* _viewer)
 {
     viewer = _viewer;
     _currentFrame = 0;
+
+#if defined WIN32
+    CreateDirectory("daenim_recordAnimation", NULL);
+#elif defined UNIX
     mkdir("daenim_recordAnimation", 0755);
+#endif
     
     osg::Node::NodeMask mask = viewer->getCamera()->getCullMask();
     mask &= ~(1 << 31);
@@ -509,7 +514,11 @@ void SnapshotCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
     {
         //std::cout<<"has frame "<<viewer->getFrame()<<std::endl;
         char buffer[64];
+#if defined WIN32
+        sprintf(buffer, ".\\daenim_recordAnimation\\%06i.png", _currentFrame);
+#elif defined UNIX
         sprintf(buffer, "./daenim_recordAnimation/%06i.png", _currentFrame);
+#endif
         viewer->takeSnapshot(buffer);
         _currentFrame++;
         viewer->setFrame(_currentFrame);
@@ -523,3 +532,5 @@ void SnapshotCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
         }
     }
 }
+
+
