@@ -88,26 +88,23 @@ int main(int argc, char** argv)
     osg::ArgumentParser arguments(&argc, argv);
     arguments.getApplicationUsage()->setApplicationName(arguments.getApplicationName());
     arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" TODO."); //TODO
-    arguments.getApplicationUsage()->addCommandLineOption("-h or --help","TODO List command line options."); //TODO
-    if (arguments.read("-h") || arguments.read("--help"))
+    arguments.getApplicationUsage()->addCommandLineOption("--help","Display the help command");
+    arguments.getApplicationUsage()->addCommandLineOption("-pos x y","Set the window position along x and y");
+    arguments.getApplicationUsage()->addCommandLineOption("-window w h","Set the window width and height");
+    arguments.getApplicationUsage()->addCommandLineOption("-socket h p","Set a port connection to update dynamically the matrixTransform of the scene. Generally we write \"-socket 127.0.0.1 5000\"");
+    
+    
+    if (arguments.read("--help") || arguments.argc()<=1 )
     {
         arguments.getApplicationUsage()->write(std::cout, osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 0;
     }
-    if (arguments.argc()<=1)
-    {
-        arguments.getApplicationUsage()->write(std::cout, osg::ApplicationUsage::COMMAND_LINE_OPTION);
-        return 1;
-    }
 
     std::string daeFile = arguments[1]; //The daefile MUST be the first argument!!
 
-    int x=50, y=50, width=800, height=600;
-    arguments.read("-x", x);
-    arguments.read("-y", y);
-    arguments.read("-w", width);
-    arguments.read("-h", height);
-    arguments.read("-window", x, y, width, height);
+    unsigned int x=50, y=50, width=800, height=600;
+    arguments.read("-pos", x, y);
+    arguments.read("-window", width, height);
     
     std::string host;
     unsigned int port=0;
