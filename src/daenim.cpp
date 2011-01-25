@@ -62,6 +62,21 @@ struct AnimationManagerFinder : public osg::NodeVisitor
 #include <osg/Material>
 #include <osg/BlendFunc>
 
+void add_text_to_node(osg::Node* curNode, std::string txt) {
+    osg::Group* curGroup = curNode->asGroup();
+    osg::Geode* textGeode = new osg::Geode();
+    osgText::Text* textDrawable = new osgText::Text();
+    textDrawable->setText(txt);
+    //textDrawable->setAutoRotateToScreen(true);
+    textDrawable->setCharacterSize(.05);
+    textDrawable->setFont("Arial.ttf");
+    curGroup->addChild(textGeode);
+    textGeode->addDrawable(textDrawable);
+    textGeode->setName("text");
+    textGeode->setNodeMask(0x10);
+}
+
+
 void parse(osg::Node* curNode, std::string prefix = "")
 {
     if (curNode->getName() == "frame_arrows") curNode->setNodeMask(0x1);
@@ -69,7 +84,15 @@ void parse(osg::Node* curNode, std::string prefix = "")
     if (curNode->getName() == "link") curNode->setNodeMask(0x4);
     if (curNode->getName() == "inertia") curNode->setNodeMask(0x8);
 
-    //std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::endl;
+    std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::endl;
+
+    if (std::string(curNode->className()) == "MatrixTransform"){
+        if ( !(curNode->getName() == "") && !(curNode->getName() == "frame_arrows")
+          && !(curNode->getName() == "shape") && !(curNode->getName() == "link") && !(curNode->getName() == "inertia")){
+            //std::cout<<"################################# "<<curNode->getName()<<" ###########################\n";
+            add_text_to_node(curNode, curNode->getName());
+        }
+    }
 
     osg::Group* curGroup = curNode->asGroup();
     if (curGroup) {
@@ -91,7 +114,7 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("--help","Display the help command");
     arguments.getApplicationUsage()->addCommandLineOption("-pos x y","Set the window position along x and y");
     arguments.getApplicationUsage()->addCommandLineOption("-window w h","Set the window width and height");
-    arguments.getApplicationUsage()->addCommandLineOption("-socket h p","Set a port connection to update dynamically the matrixTransform of the scene. Generally we write \"-socket 127.0.0.1 5000\"");
+    arguments.getApplicationUsage()->addCommandLineOption("-socket h p","Set a port connection to update the scene. example \"-socket 127.0.0.1 5000\"");
     
     
     if (arguments.read("--help") || arguments.argc()<=1 )
@@ -160,7 +183,7 @@ int main(int argc, char** argv)
 
     osgGA::TrackballManipulator* manipulator = new osgGA::TrackballManipulator();
     viewer.setCameraManipulator(manipulator);
-    viewer.getCamera()->setCullMask(0xfffffff7);
+    viewer.getCamera()->setCullMask(0xffffffe7);
 
     return viewer.run();
 

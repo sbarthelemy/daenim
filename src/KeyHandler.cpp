@@ -13,6 +13,7 @@ KeyEventHandler::KeyEventHandler()
     _actionKeys["toggle_shapes"] = 's';
     _actionKeys["toggle_links"]  = 'l';
     _actionKeys["toggle_inertia"]  = 'i';
+    _actionKeys["toggle_names"]  = 'n';
     //_actionKeys["toggle_interface"]  = 'm';
 }
 
@@ -47,6 +48,12 @@ bool KeyEventHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionA
         else if (ea.getKey() == _actionKeys["toggle_inertia"])
         {
             mask ^= (1 << 3);
+            camera->setCullMask(mask);
+            return true;
+        }
+        else if (ea.getKey() == _actionKeys["toggle_names"])
+        {
+            mask ^= (1 << 4);
             camera->setCullMask(mask);
             return true;
         }
