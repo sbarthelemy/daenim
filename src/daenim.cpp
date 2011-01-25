@@ -68,7 +68,7 @@ void add_text_to_node(osg::Node* curNode, std::string txt) {
     osgText::Text* textDrawable = new osgText::Text();
     textDrawable->setText(txt);
     //textDrawable->setAutoRotateToScreen(true);
-    textDrawable->setCharacterSize(.05);
+    textDrawable->setCharacterSize(.04);
     textDrawable->setFont("Arial.ttf");
     curGroup->addChild(textGeode);
     textGeode->addDrawable(textDrawable);
@@ -84,7 +84,7 @@ void parse(osg::Node* curNode, std::string prefix = "")
     if (curNode->getName() == "link") curNode->setNodeMask(0x4);
     if (curNode->getName() == "inertia") curNode->setNodeMask(0x8);
 
-    std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::endl;
+    //std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::endl;
 
     if (std::string(curNode->className()) == "MatrixTransform"){
         if ( !(curNode->getName() == "") && !(curNode->getName() == "frame_arrows")
