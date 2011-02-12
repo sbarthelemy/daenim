@@ -16,6 +16,10 @@
  * jeremy Moles <jeremy@emperorlinux.com>
 */
 
+#ifdef WIN32
+#include <windows.h>
+#endif
+
 #include "AnimtkViewerGUI"
 #include "ViewerExt"
 #include "KeyHandler"
@@ -89,7 +93,7 @@ void parse(osg::Node* curNode, std::string prefix = "")
     if (std::string(curNode->className()) == "MatrixTransform"){
         if ( !(curNode->getName() == "") && !(curNode->getName() == "frame_arrows")
           && !(curNode->getName() == "shape") && !(curNode->getName() == "link") && !(curNode->getName() == "inertia")){
-            //std::cout<<"################################# "<<curNode->getName()<<" ###########################\n";
+            //std::cout<<"add a text Geode: "<<curNode->getName()<<std::endl;
             add_text_to_node(curNode, curNode->getName());
         }
     }
@@ -101,7 +105,6 @@ void parse(osg::Node* curNode, std::string prefix = "")
         }
     }
 }
-
 
 
 
@@ -125,13 +128,15 @@ int main(int argc, char** argv)
 
     std::string daeFile = arguments[1]; //The daefile MUST be the first argument!!
 
-    unsigned int x=50, y=50, width=800, height=600;
+    unsigned int x=50, y=50, width=800, height=600, framerate=-1;
     arguments.read("-pos", x, y);
     arguments.read("-window", width, height);
+    arguments.read("-fr", framerate);
     
     std::string host;
     unsigned int port=0;
     bool communicationWithSocket = arguments.read("-socket", host, port);
+    bool hasAnAnimation = false;
 
 
 
@@ -163,6 +168,7 @@ int main(int argc, char** argv)
         fileNode->accept(finder);
         if (finder._animManager.valid())
         {
+            hasAnAnimation = true;
             fileNode->setUpdateCallback(finder._animManager.get());
             AnimtkViewerGUI*        gui = new AnimtkViewerGUI(&viewer, width, height, finder._animManager.get()); //interface
             osg::Camera*     camera = gui->createParentOrthoCamera();
@@ -185,8 +191,23 @@ int main(int argc, char** argv)
     viewer.setCameraManipulator(manipulator);
     viewer.getCamera()->setCullMask(0xffffffe7);
 
-    return viewer.run();
-
+    if (hasAnAnimation || framerate<=0)
+    {
+        return viewer.run();
+    }
+    else
+    {
+        while (!viewer.done())
+        {
+            viewer.frame();
+#ifdef UNIX
+            usleep(1000000/framerate);
+#elif WIN32
+            Sleep(1000/framerate);
+#endif
+        }
+        return 0;
+    }
 }
 
 
