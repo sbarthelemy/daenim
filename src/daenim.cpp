@@ -16,10 +16,6 @@
  * jeremy Moles <jeremy@emperorlinux.com>
 */
 
-#ifdef WIN32
-#include <windows.h>
-#endif
-
 #include "AnimtkViewerGUI"
 #include "ViewerExt"
 #include "KeyHandler"
