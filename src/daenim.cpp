@@ -113,6 +113,10 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("--help","Display the help command");
     arguments.getApplicationUsage()->addCommandLineOption("-pos x y","Set the window position along x and y");
     arguments.getApplicationUsage()->addCommandLineOption("-window w h","Set the window width and height");
+    arguments.getApplicationUsage()->addCommandLineOption("-fps 15","Set the framerate of the view. Useful to save cpu consumption");
+    arguments.getApplicationUsage()->addCommandLineOption("-eye x y z","Set the eye/camera position");
+    arguments.getApplicationUsage()->addCommandLineOption("-coi x y z","Set the Center Of Interest position");
+    arguments.getApplicationUsage()->addCommandLineOption("-up x y z","Set the Up vector");
     arguments.getApplicationUsage()->addCommandLineOption("-socket h p","Set a port connection to update the scene. example \"-socket 127.0.0.1 5000\"");
     
     
@@ -124,11 +128,19 @@ int main(int argc, char** argv)
 
     std::string daeFile = arguments[1]; //The daefile MUST be the first argument!!
 
-    unsigned int x=50, y=50, width=800, height=600, framerate=-1;
+    unsigned int x=50, y=50, width=800, height=600, fps=-1;
     arguments.read("-pos", x, y);
     arguments.read("-window", width, height);
-    arguments.read("-fr", framerate);
+    arguments.read("-fps", fps);
     
+    osg::Vec3d eye(0,0,1);
+    osg::Vec3d coi(0,0,0);
+    osg::Vec3d up(0,1,0);
+    bool setNewHome = false;
+    setNewHome |= arguments.read("-eye", eye[0], eye[1], eye[2]);
+    setNewHome |= arguments.read("-coi", coi[0], coi[1], coi[2]);
+    setNewHome |= arguments.read("-up", up[0], up[1], up[2]);
+
     std::string host;
     unsigned int port=0;
     bool communicationWithSocket = arguments.read("-socket", host, port);
@@ -187,7 +199,13 @@ int main(int argc, char** argv)
     viewer.setCameraManipulator(manipulator);
     viewer.getCamera()->setCullMask(0xffffffe7);
 
-    if (hasAnAnimation || framerate<=0)
+    if (setNewHome)
+    {
+        viewer.getCameraManipulator()->setHomePosition(eye,coi,up);
+        viewer.home();
+    }
+
+    if (hasAnAnimation || fps<=0)
     {
         return viewer.run();
     }
@@ -197,9 +215,9 @@ int main(int argc, char** argv)
         {
             viewer.frame();
 #ifdef UNIX
-            usleep(1000000/framerate);
+            usleep(1000000/fps);
 #elif WIN32
-            Sleep(1000/framerate);
+            Sleep(1000/fps);
 #endif
         }
         return 0;
