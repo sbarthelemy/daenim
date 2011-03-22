@@ -77,27 +77,32 @@ void add_text_to_node(osg::Node* curNode, std::string txt) {
 }
 
 
-void parse(osg::Node* curNode, std::string prefix = "")
+void parse(osg::Node* curNode, std::string prefix = "", bool verbose=false)
 {
-    if (curNode->getName() == "frame_arrows") curNode->setNodeMask(0x1);
-    if (curNode->getName() == "shape") curNode->setNodeMask(0x2);
-    if (curNode->getName() == "link") curNode->setNodeMask(0x4);
-    if (curNode->getName() == "inertia") curNode->setNodeMask(0x8);
-
-    //std::cout<< prefix << " \"" << curNode->getName() << "\" (" << curNode->className() << ") " << std::endl;
-
-    if (std::string(curNode->className()) == "MatrixTransform"){
-        if ( !(curNode->getName() == "") && !(curNode->getName() == "frame_arrows")
-          && !(curNode->getName() == "shape") && !(curNode->getName() == "link") && !(curNode->getName() == "inertia")){
-            //std::cout<<"add a text Geode: "<<curNode->getName()<<std::endl;
+    if (verbose){
+        if ( (std::string(curNode->className()) == "MatrixTransform") &&
+            !(curNode->getName() == "")){
+            std::cout<<"add a text Geode: "<<curNode->getName()<<std::endl;
             add_text_to_node(curNode, curNode->getName());
         }
+        std::cout<< prefix << "(" << curNode->className() << ") \"" << curNode->getName() << "\""<< std::endl;
+    }
+
+    osg::Node::DescriptionList Des = curNode->getDescriptions();
+    for (int i=0; i<Des.size(); i++){
+        if (verbose){
+            std::cout<<"description: "<<Des[i]<<std::endl;
+        }
+        if      (Des[i] == "frame") curNode->setNodeMask(0x1);
+        else if (Des[i] == "shape") curNode->setNodeMask(0x2);
+        else if (Des[i] == "link") curNode->setNodeMask(0x4);
+        else if (Des[i] == "inertia") curNode->setNodeMask(0x8);
     }
 
     osg::Group* curGroup = curNode->asGroup();
     if (curGroup) {
         for (unsigned int i = 0 ; i < curGroup->getNumChildren(); i ++) {
-            parse(curGroup->getChild(i), prefix + "--->");
+            parse(curGroup->getChild(i), prefix + "--->", verbose);
         }
     }
 }
@@ -113,11 +118,12 @@ int main(int argc, char** argv)
     arguments.getApplicationUsage()->addCommandLineOption("--help","Display the help command");
     arguments.getApplicationUsage()->addCommandLineOption("-pos x y","Set the window position along x and y");
     arguments.getApplicationUsage()->addCommandLineOption("-window w h","Set the window width and height");
-    arguments.getApplicationUsage()->addCommandLineOption("-fps 15","Set the framerate of the view. Useful to save cpu consumption");
+    arguments.getApplicationUsage()->addCommandLineOption("-fps <int>","Set the framerate of the view. Useful to save cpu consumption");
     arguments.getApplicationUsage()->addCommandLineOption("-eye x y z","Set the eye/camera position");
     arguments.getApplicationUsage()->addCommandLineOption("-coi x y z","Set the Center Of Interest position");
     arguments.getApplicationUsage()->addCommandLineOption("-up x y z","Set the Up vector");
     arguments.getApplicationUsage()->addCommandLineOption("-socket h p","Set a port connection to update the scene. example \"-socket 127.0.0.1 5000\"");
+    arguments.getApplicationUsage()->addCommandLineOption("-verbose","Set the application to be verbose during graph building");
     
     
     if (arguments.read("--help") || arguments.argc()<=1 )
@@ -145,6 +151,9 @@ int main(int argc, char** argv)
     unsigned int port=0;
     bool communicationWithSocket = arguments.read("-socket", host, port);
     bool hasAnAnimation = false;
+    
+    bool verbose = false;
+    verbose = arguments.read("-verbose");
 
 
 
@@ -158,7 +167,7 @@ int main(int argc, char** argv)
         return 1;
     }
     rootGroup->addChild(fileNode);
-    parse(fileNode);
+    parse(fileNode, "", verbose);
 
     //----------------- Create Viewer and interface -------------------//
     osgViewer::ViewerExt viewer;
