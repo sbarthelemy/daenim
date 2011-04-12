@@ -79,13 +79,15 @@ void add_text_to_node(osg::Node* curNode, std::string txt) {
 
 void parse(osg::Node* curNode, std::string prefix = "", bool verbose=false)
 {
-    if (verbose){
-        if ( (std::string(curNode->className()) == "MatrixTransform") &&
-            !(curNode->getName() == "")){
-            std::cout<<"add a text Geode: "<<curNode->getName()<<std::endl;
-            add_text_to_node(curNode, curNode->getName());
-        }
+    if (verbose) {
         std::cout<< prefix << "(" << curNode->className() << ") \"" << curNode->getName() << "\""<< std::endl;
+    }
+    if ( (std::string(curNode->className()) == "MatrixTransform") &&
+    !(curNode->getName() == "")){
+        if (verbose){
+            std::cout<<"add a text Geode: "<<curNode->getName()<<std::endl;
+        }
+        add_text_to_node(curNode, curNode->getName());
     }
 
     osg::Node::DescriptionList Des = curNode->getDescriptions();
