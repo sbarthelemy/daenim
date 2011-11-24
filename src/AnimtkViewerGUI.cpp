@@ -34,11 +34,13 @@
     #define APP_PATH_FINDER GetModuleFileName
     #define FIRST_ARG NULL
     #define ICON_PATH "Icons\\"
+    #define FONT "Mono.ttf"
 #elif defined UNIX
     #include <unistd.h>
     #define APP_PATH_FINDER readlink
     #define FIRST_ARG "/proc/self/exe"
     #define ICON_PATH "../share/daenim/Icons/"
+    #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
     #include <sys/stat.h>
     #include <sys/types.h> //TODO
 #endif
@@ -289,7 +291,7 @@ void AnimtkViewerGUI::_createInfoBar()
     labelSpeedSpace->setColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     _speedLabel = new osgWidget::Label("speedlabel");
-    _speedLabel->setFont("fonts/Vera.ttf");
+    _speedLabel->setFont(FONT);
     _speedLabel->setCanFill(true);
     _speedLabel->setFontSize(FONT_SIZE);
     _speedLabel->setAlignHorizontal(osgWidget::Widget::HA_CENTER);

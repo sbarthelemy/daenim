@@ -32,6 +32,11 @@
 
 #include <osgGA/TrackballManipulator>
 
+#if defined WIN32
+    #define FONT "Mono.ttf"
+#elif defined UNIX
+    #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
+#endif
 
 struct AnimationManagerFinder : public osg::NodeVisitor
 {
@@ -69,7 +74,7 @@ void add_text_to_node(osg::Node* curNode, std::string txt) {
     textDrawable->setText(txt);
     //textDrawable->setAutoRotateToScreen(true);
     textDrawable->setCharacterSize(.04);
-    textDrawable->setFont("Arial.ttf");
+    textDrawable->setFont(FONT);
     curGroup->addChild(textGeode);
     textGeode->addDrawable(textDrawable);
     textGeode->setName("text");
