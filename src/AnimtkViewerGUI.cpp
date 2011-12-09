@@ -34,7 +34,7 @@
     #define APP_PATH_FINDER GetModuleFileName
     #define FIRST_ARG NULL
     #define ICON_PATH "Icons\\"
-    #define FONT "Mono.ttf"
+    #define FONT "FreeMono.ttf"
 #elif defined UNIX
     #include <unistd.h>
     #define APP_PATH_FINDER readlink

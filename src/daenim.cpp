@@ -33,7 +33,7 @@
 #include <osgGA/TrackballManipulator>
 
 #if defined WIN32
-    #define FONT "Mono.ttf"
+    #define FONT "FreeMono.ttf"
 #elif defined UNIX
     #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
 #endif
