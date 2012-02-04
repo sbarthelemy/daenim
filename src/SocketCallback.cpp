@@ -84,37 +84,39 @@ void SocketCallback::parse(osg::Node* curNode)
 
 void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 {
-    char msg[MAX_LEN];
-    memset(msg, 0x0, MAX_LEN);
+    char msg[sizeof(ArbTransform)];
+    memset(msg, 0x0, sizeof(ArbTransform));
+    ArbTransform cAt;
+
+    for (int i=0; i<100000; i++) { // big "for" loop to avoid infinite loop
 #if defined WIN32
-    int numRead = recv(s, msg, MAX_LEN, 0); //MSG_WAITALL
+        int numRead = recv(s, msg, sizeof(ArbTransform), 0); //MSG_WAITALL
 #elif defined UNIX
-    int numRead = recv(s, msg, MAX_LEN, MSG_DONTWAIT);
+        int numRead = recv(s, msg, sizeof(ArbTransform), MSG_DONTWAIT);
 #endif
-    
-    if (numRead>=0) {
-        //printf("Message size: %i\nMessage: %s;\n\n", numRead, msg);
-        //std::cout<<"Message size: "<<numRead<<std::endl<<msg<<std::endl<<std::endl;
-        if (strncmp(msg, "close connection", 16) == 0)
-        {
-            shutdown(s,2);
-            std::cout<<"SocketCallBack is shutted down"<<std::endl;
+        if (numRead<=0) {
+            break;
         }
         else {
-            char * pch;
-            pch = strtok(msg, "\n");
-            while (pch !=NULL) {
-                char name[128];
-                float f00, f01, f02, f03, f10, f11, f12, f13, f20, f21, f22, f23;
-                sscanf(pch, "%s %f %f %f %f %f %f %f %f %f %f %f %f", name, &f00, &f01, &f02 ,&f03, &f10, &f11, &f12, &f13, &f20, &f21, &f22, &f23);
-                pch = strtok(NULL, "\n");
-                
-                if (validNode.find(name) !=validNode.end()) {
-                    osg::Matrix m(f00,f10,f20,0,
-                                  f01,f11,f21,0,
-                                  f02,f12,f22,0,
-                                  f03,f13,f23,1);
-                    validNode[name]->setMatrix(m);
+            //printf("Message size: %i\nMessage: %s;\n\n", numRead, msg);
+            //std::cout<<"Message size: "<<numRead<<std::endl<<msg<<std::endl<<std::endl;
+            if (strncmp(msg, "close connection", 16) == 0)
+            {
+                shutdown(s,2);
+                std::cout<<"SocketCallBack is shutted down"<<std::endl;
+            }
+            else if (strncmp(msg, "update done", 11) == 0)
+            {
+                break;
+            }
+            else {
+                memcpy(&cAt, msg, sizeof(ArbTransform));
+                if (validNode.find(cAt.name) != validNode.end()) {
+                    osg::Matrix m(cAt.val[0],cAt.val[4],cAt.val[8] ,0,
+                                  cAt.val[1],cAt.val[5],cAt.val[9] ,0,
+                                  cAt.val[2],cAt.val[6],cAt.val[10],0,
+                                  cAt.val[3],cAt.val[7],cAt.val[11],1);
+                    validNode[cAt.name]->setMatrix(m);
                 }
             }
         }
