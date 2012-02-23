@@ -107,6 +107,7 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
             }
             else if (strncmp(msg, "update done", 11) == 0)
             {
+                send(s, "OK", 2, 0);
                 break;
             }
             else {
