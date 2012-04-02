@@ -27,6 +27,7 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <osgWidget/ViewerEventHandlers>
 #include <osgDB/ReadFile>
+#include <osg/PositionAttitudeTransform>
 #include <osgAnimation/AnimationManagerBase>
 #include <osgAnimation/BasicAnimationManager>
 
@@ -158,6 +159,7 @@ int main(int argc, char** argv)
     
     arguments.getApplicationUsage()->addCommandLineOption("-snapshot <filename>","Take a snapshot of the scene, save in <filename> and close window");
     arguments.getApplicationUsage()->addCommandLineOption("-rec <directoryname>","Record frames of animation, if any, in <directoryname>");
+    arguments.getApplicationUsage()->addCommandLineOption("-extension <type>","type of extension for record and snapshot (default 'png')");
     
     arguments.getApplicationUsage()->addCommandLineOption("-eye x y z","Set the eye/camera position");
     arguments.getApplicationUsage()->addCommandLineOption("-coi x y z","Set the Center Of Interest position");
@@ -198,6 +200,8 @@ int main(int argc, char** argv)
     bool recordAnimation = false;
     std::string recordDirectoryName = "daenim_recordAnimation";
     recordAnimation = arguments.read("-rec", recordDirectoryName);
+    std::string extension_type = "png";
+    arguments.read("-extension", extension_type);
 
     osg::Vec3d eye(0,0,1);
     osg::Vec3d coi(0,0,0);
@@ -230,6 +234,9 @@ int main(int argc, char** argv)
     rootGroup->addChild(fileNode);
     parse(fileNode, "", verbose);
 
+    //----------------- Modifiy fileNode to set the UP vector along Z (avoid double transformation when using "-up" argument) -------------------//
+    fileNode->asTransform()->asPositionAttitudeTransform()->setAttitude(osg::Quat(0.0f, osg::Vec3(1.0f,0.0f,0.0f)));
+    
     //----------------- Create Viewer and interface -------------------//
     osgViewer::ViewerExt viewer;
     viewer.addEventHandler(new KeyEventHandler());
@@ -248,7 +255,7 @@ int main(int argc, char** argv)
         {
             hasAnAnimation = true;
             fileNode->setUpdateCallback(finder._animManager.get());
-            AnimtkViewerGUI*        gui = new AnimtkViewerGUI(&viewer, width, height, finder._animManager.get()); //interface
+            AnimtkViewerGUI*        gui = new AnimtkViewerGUI(&viewer, width, height, finder._animManager.get(), extension_type); //interface
             osg::Camera*     camera = gui->createParentOrthoCamera();
             rootGroup->addChild(camera);
 
