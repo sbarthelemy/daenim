@@ -32,7 +32,7 @@
 class AnimtkViewerGUI: public osgWidget::WindowManager
 {
 public:
-    AnimtkViewerGUI(osgViewer::Viewer*, unsigned int, unsigned int, osgAnimation::BasicAnimationManager*);
+    AnimtkViewerGUI(osgViewer::Viewer*, unsigned int, unsigned int, osgAnimation::BasicAnimationManager*, std::string);
 
 private:
     void setAnimationManager();
@@ -50,7 +50,8 @@ private:
     osg::ref_ptr<osgWidget::Box>        _infoLabelBox;
     
     osg::ref_ptr<osgWidget::Label>      _speedLabel, _timeLabel, _frameLabel;
-    
+
+    std::string _extension;
 
     float  _sliderPos, _sliderPercent, _speedPos, _speedPercent;
 
@@ -103,9 +104,10 @@ class SnapshotCallback : public osg::NodeCallback
 private:
     osgViewer::ViewerExt* viewer;
     int                   _currentFrame;
+    std::string           _extension;
 
 public:
-    SnapshotCallback(osgViewer::ViewerExt* _viewer);
+    SnapshotCallback(osgViewer::ViewerExt* _viewer, std::string extension);
     virtual ~SnapshotCallback();
 
     virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);

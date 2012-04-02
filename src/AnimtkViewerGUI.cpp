@@ -69,11 +69,12 @@ bool eatDrag(osgWidget::Event&)
 }
 
 
-AnimtkViewerGUI::AnimtkViewerGUI(osgViewer::Viewer* ve, unsigned int w, unsigned int h, osgAnimation::BasicAnimationManager* basicAnimManager):
+AnimtkViewerGUI::AnimtkViewerGUI(osgViewer::Viewer* ve, unsigned int w, unsigned int h, 
+                                 osgAnimation::BasicAnimationManager* basicAnimManager, std::string extension):
 osgWidget::WindowManager(ve, w, h, 0x80000000, 0)
 {
     viewer = (osgViewer::ViewerExt*)ve;
-
+    _extension = extension;
     _basicAnimManager = basicAnimManager;
     
     if (_basicAnimManager)
@@ -430,7 +431,7 @@ void AnimtkViewerGUI::setPause(bool state)
 void AnimtkViewerGUI::startRecordAnimation()
 {
     setPause(true);
-    viewer->getCamera()->setUpdateCallback(new SnapshotCallback(viewer));
+    viewer->getCamera()->setUpdateCallback(new SnapshotCallback(viewer, _extension));
 }
 
 
@@ -483,10 +484,11 @@ void ButtonFunctor::update(float t, osgWidget::Widget* w)
 /*=======================================
  * SnapshotCallback
  *=====================================*/
-SnapshotCallback::SnapshotCallback(osgViewer::ViewerExt* _viewer)
+SnapshotCallback::SnapshotCallback(osgViewer::ViewerExt* _viewer, std::string extension)
 {
     viewer = _viewer;
     _currentFrame = 0;
+    _extension = extension;
 
 #if defined WIN32
     CreateDirectory("daenim_recordAnimation", NULL);
@@ -517,9 +519,9 @@ void SnapshotCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
         //std::cout<<"has frame "<<viewer->getFrame()<<std::endl;
         char buffer[64];
 #if defined WIN32
-        sprintf(buffer, ".\\daenim_recordAnimation\\%06i.png", _currentFrame);
+        sprintf(buffer, ".\\daenim_recordAnimation\\%06i.%s", _currentFrame, _extension.c_str());
 #elif defined UNIX
-        sprintf(buffer, "./daenim_recordAnimation/%06i.png", _currentFrame);
+        sprintf(buffer, "./daenim_recordAnimation/%06i.%s", _currentFrame, _extension.c_str());
 #endif
         viewer->takeSnapshot(buffer);
         _currentFrame++;
