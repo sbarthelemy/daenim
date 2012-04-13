@@ -235,7 +235,9 @@ int main(int argc, char** argv)
     parse(fileNode, "", verbose);
 
     //----------------- Modifiy fileNode to set the UP vector along Z (avoid double transformation when using "-up" argument) -------------------//
-    fileNode->asTransform()->asPositionAttitudeTransform()->setAttitude(osg::Quat(0.0f, osg::Vec3(1.0f,0.0f,0.0f)));
+    if ((std::string(fileNode->className()) == "PositionAttitudeTransform")) {
+        fileNode->asTransform()->asPositionAttitudeTransform()->setAttitude(osg::Quat(0.0f, osg::Vec3(1.0f,0.0f,0.0f)));
+    }
     
     //----------------- Create Viewer and interface -------------------//
     osgViewer::ViewerExt viewer;
