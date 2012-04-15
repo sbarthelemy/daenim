@@ -30,25 +30,9 @@
 #include <osg/PositionAttitudeTransform>
 #include <osgAnimation/AnimationManagerBase>
 #include <osgAnimation/BasicAnimationManager>
-
 #include <osgGA/TrackballManipulator>
-
-
-//#if defined WIN32
-//    
-//    #define APP_PATH_FINDER GetModuleFileName
-//    #define FIRST_ARG NULL
-//    #define ICON_PATH "Icons\\"
-//    #define FONT "FreeMono.ttf"
-//#elif defined UNIX
-//    
-//    #define APP_PATH_FINDER readlink
-//    #define FIRST_ARG "/proc/self/exe"
-//    #define ICON_PATH "../share/daenim/Icons/"
-//    #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
-//    #include <sys/stat.h>
-//    #include <sys/types.h> //TODO
-//#endif
+#include <osg/Material>
+#include <osg/BlendFunc>
 
 
 #if defined WIN32
@@ -61,6 +45,13 @@
     #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
 #endif
 
+
+
+
+
+/**
+ * This is a structure used to know if the collada file has animations or not.
+ */
 struct AnimationManagerFinder : public osg::NodeVisitor
 {
     osg::ref_ptr<osgAnimation::BasicAnimationManager> _animManager;
@@ -87,9 +78,9 @@ struct AnimationManagerFinder : public osg::NodeVisitor
 
 
 
-#include <osg/Material>
-#include <osg/BlendFunc>
-
+/**
+ * Add text to nodes with their id.
+ */
 void add_text_to_node(osg::Node* curNode, std::string txt) {
     osg::Group* curGroup = curNode->asGroup();
     osg::Geode* textGeode = new osg::Geode();
@@ -105,6 +96,10 @@ void add_text_to_node(osg::Node* curNode, std::string txt) {
 }
 
 
+/**
+ * This is a recursive function to parse the collada file and set a node
+ * mask depending on the category of each node.
+ */
 void parse(osg::Node* curNode, std::string prefix = "", bool verbose=false)
 {
     if (verbose) {
@@ -139,113 +134,276 @@ void parse(osg::Node* curNode, std::string prefix = "", bool verbose=false)
 
 
 
-int main(int argc, char** argv) 
+/**
+ * Define this program arguments
+ */
+osg::ArgumentParser* defineProgramArguments(int *argc, char** argv)
+{
+    //----------------- Define arguments -------------------//
+    osg::ArgumentParser* arg = new osg::ArgumentParser(argc, argv);
+
+    arg->getApplicationUsage()->setApplicationName(arg->getApplicationName());
+    arg->getApplicationUsage()->setDescription(arg->getApplicationName()+" TODO."); //TODO
+    arg->getApplicationUsage()->addCommandLineOption("-h | -help | --help","Display the help command");
+    arg->getApplicationUsage()->addCommandLineOption("-pos x y","Set the window position along x and y");
+    arg->getApplicationUsage()->addCommandLineOption("-window w h","Set the window width and height");
+    arg->getApplicationUsage()->addCommandLineOption("-fps <int>","Set the framerate of the view. Useful to save cpu consumption");
+    arg->getApplicationUsage()->addCommandLineOption("-bgcolor r g b a","Set background color: 4 floats in [0,1]");
+    
+    arg->getApplicationUsage()->addCommandLineOption("-showframes <bool>","Display frames from the beginning");
+    arg->getApplicationUsage()->addCommandLineOption("-showshapes <bool>","Display shapes from the beginning");
+    arg->getApplicationUsage()->addCommandLineOption("-showlinks <bool>","Display links from the beginning");
+    arg->getApplicationUsage()->addCommandLineOption("-showinertias <bool>","Display inertias from the beginning");
+    arg->getApplicationUsage()->addCommandLineOption("-shownames <bool>","Display names from the beginning");
+    
+    arg->getApplicationUsage()->addCommandLineOption("-snapshot <filename>","Take a snapshot of the scene, save in <filename> and close window");
+    arg->getApplicationUsage()->addCommandLineOption("-time <float>","Give the current time of the scene, to take snapshot.");
+    arg->getApplicationUsage()->addCommandLineOption("-rec <directoryname>","Record frames of animation, if any, in <directoryname>");
+    arg->getApplicationUsage()->addCommandLineOption("-extension <type>","type of extension for record and snapshot (default 'png')");
+    
+    arg->getApplicationUsage()->addCommandLineOption("-eye x y z","Set the eye/camera position(default 2 2 2)");
+    arg->getApplicationUsage()->addCommandLineOption("-coi x y z","Set the Center Of Interest position (default 0 0 0)");
+    arg->getApplicationUsage()->addCommandLineOption("-up x y z","Set the Up vector (default set in dae file or 0 0 1)");
+    
+    arg->getApplicationUsage()->addCommandLineOption("-socket h p","Set a port connection to update the scene. example \"-socket 127.0.0.1 5000\"");
+    arg->getApplicationUsage()->addCommandLineOption("-verbose","Set the application to be verbose during graph building");
+
+    return arg;
+}
+
+
+
+struct ArgContainer
+{
+    std::string         daeFile;
+    unsigned int        x, y, width, height, port;
+    float               time, fps;
+    osg::Vec4f          backgroundColor;
+    osg::Node::NodeMask displayMask;
+    bool                takeSnapShot, recordAnimation, hasAnAnimation, userChangeUp, verbose, communicationWithSocket;
+    osg::Vec3d          eye, coi, up;
+    std::string         snapShotName, recordDirectoryName, extension_type, host;
+
+    ArgContainer() {
+        x=50;
+        y=50;
+        width=800;
+        height=600;
+        fps=-1;
+        time=0;
+        
+        backgroundColor = osg::Vec4f(-1,-1,-1,-1);
+        
+        displayMask = 0xffffffe7;
+        
+        takeSnapShot=false;
+        recordAnimation=false;
+        userChangeUp=false;
+        hasAnAnimation = false;
+        verbose = false;
+        communicationWithSocket = false;
+        
+        eye = osg::Vec3d(2,2,2);
+        coi = osg::Vec3d(0,0,0);
+        up  =osg::Vec3d(0,0,1);
+        
+        snapShotName = "snapshot_daenim.png";
+        recordDirectoryName = "daenim_recordAnimation";
+        extension_type = "png";
+        
+        port=0;
+    };
+};
+
+
+
+
+ArgContainer* getUserArguments(osg::ArgumentParser* arg)
 {
     //----------------- Get and parse arguments -------------------//
-    osg::ArgumentParser arguments(&argc, argv);
-    arguments.getApplicationUsage()->setApplicationName(arguments.getApplicationName());
-    arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" TODO."); //TODO
-    arguments.getApplicationUsage()->addCommandLineOption("--help","Display the help command");
-    arguments.getApplicationUsage()->addCommandLineOption("-pos x y","Set the window position along x and y");
-    arguments.getApplicationUsage()->addCommandLineOption("-window w h","Set the window width and height");
-    arguments.getApplicationUsage()->addCommandLineOption("-fps <int>","Set the framerate of the view. Useful to save cpu consumption");
-    arguments.getApplicationUsage()->addCommandLineOption("-bgcolor r g b a","Set background color: 4 floats in [0,1]");
+    ArgContainer* userArgs = new ArgContainer();
+
+    userArgs->daeFile = (*arg)[1]; //The daefile MUST be the first argument!!
     
-    arguments.getApplicationUsage()->addCommandLineOption("-showframes <bool>","Display frames from the beginning");
-    arguments.getApplicationUsage()->addCommandLineOption("-showshapes <bool>","Display shapes from the beginning");
-    arguments.getApplicationUsage()->addCommandLineOption("-showlinks <bool>","Display links from the beginning");
-    arguments.getApplicationUsage()->addCommandLineOption("-showinertias <bool>","Display inertias from the beginning");
-    arguments.getApplicationUsage()->addCommandLineOption("-shownames <bool>","Display names from the beginning");
+    arg->read("-pos", userArgs->x, userArgs->y);
+    arg->read("-window", userArgs->width, userArgs->height);
+    arg->read("-fps", userArgs->fps);
+
+    arg->read("-bgcolor", userArgs->backgroundColor[0], userArgs->backgroundColor[1],
+                          userArgs->backgroundColor[2], userArgs->backgroundColor[3]);
+
+    int res;
+    if (arg->read("-showframes", res))   {if (res) userArgs->displayMask |= (1 << 0); else userArgs->displayMask &= ~(1 << 0);};
+    if (arg->read("-showshapes", res))   {if (res) userArgs->displayMask |= (1 << 1); else userArgs->displayMask &= ~(1 << 1);};
+    if (arg->read("-showlinks", res))    {if (res) userArgs->displayMask |= (1 << 2); else userArgs->displayMask &= ~(1 << 2);};
+    if (arg->read("-showinertias", res)) {if (res) userArgs->displayMask |= (1 << 3); else userArgs->displayMask &= ~(1 << 3);};
+    if (arg->read("-shownames", res))    {if (res) userArgs->displayMask |= (1 << 4); else userArgs->displayMask &= ~(1 << 4);};
+
+    userArgs->takeSnapShot = arg->read("-snapshot", userArgs->snapShotName);
+    arg->read("-time", userArgs->time);
+    userArgs->recordAnimation = arg->read("-rec", userArgs->recordDirectoryName);
+    arg->read("-extension", userArgs->extension_type);
+
+    arg->read("-eye", userArgs->eye[0], userArgs->eye[1], userArgs->eye[2]);
+    arg->read("-coi", userArgs->coi[0], userArgs->coi[1], userArgs->coi[2]);
+    userArgs->userChangeUp = arg->read("-up" , userArgs->up[0] , userArgs->up[1] , userArgs->up[2]);
+
+    userArgs->communicationWithSocket = arg->read("-socket", userArgs->host, userArgs->port);
+
+    userArgs->verbose = arg->read("-verbose");
     
-    arguments.getApplicationUsage()->addCommandLineOption("-snapshot <filename>","Take a snapshot of the scene, save in <filename> and close window");
-    arguments.getApplicationUsage()->addCommandLineOption("-rec <directoryname>","Record frames of animation, if any, in <directoryname>");
-    arguments.getApplicationUsage()->addCommandLineOption("-extension <type>","type of extension for record and snapshot (default 'png')");
     
-    arguments.getApplicationUsage()->addCommandLineOption("-eye x y z","Set the eye/camera position");
-    arguments.getApplicationUsage()->addCommandLineOption("-coi x y z","Set the Center Of Interest position");
-    arguments.getApplicationUsage()->addCommandLineOption("-up x y z","Set the Up vector");
+    return userArgs;
+}
+
+
+
+void defineUpAxisInScene(osg::Node* fileNode, ArgContainer* userArgs)
+{
+    if ((std::string(fileNode->className()) == "PositionAttitudeTransform")) {
+        osg::Quat quat = fileNode->asTransform()->asPositionAttitudeTransform()->getAttitude();
+
+        if (userArgs->userChangeUp == false)
+        {
+            if ( quat == osg::Quat(osg::inDegrees(90.0f), osg::Vec3(1.0f,0.0f,0.0f)) )
+            {
+                userArgs->up  = osg::Vec3d(0,1,0);
+            }
+            else if ( quat == osg::Quat(osg::inDegrees(90.0f), osg::Vec3(0.0f,1.0f,0.0f)) )
+            {
+                userArgs->up  = osg::Vec3d(1,0,0);
+            }
+        }
+        fileNode->asTransform()->asPositionAttitudeTransform()->setAttitude(osg::Quat(0.0f, osg::Vec3(1.0f,0.0f,0.0f)));
+    }
+}
+
+
+
+void initViewer(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
+{
+    //------------------- Init and Start Viewer -----------------------//
+    osgGA::TrackballManipulator* manipulator = new osgGA::TrackballManipulator();
+    viewer->setCameraManipulator(manipulator);
     
-    arguments.getApplicationUsage()->addCommandLineOption("-socket h p","Set a port connection to update the scene. example \"-socket 127.0.0.1 5000\"");
-    arguments.getApplicationUsage()->addCommandLineOption("-verbose","Set the application to be verbose during graph building");
-    
-    
-    if (arguments.read("--help") || arguments.argc()<=1 )
+    osg::Camera* cam = viewer->getCamera();
+    cam->setCullMask(userArgs->displayMask);
+    if (userArgs->backgroundColor[3]>=0.)
     {
-        arguments.getApplicationUsage()->write(std::cout, osg::ApplicationUsage::COMMAND_LINE_OPTION);
+        cam->setClearColor(userArgs->backgroundColor);
+    }
+    viewer->setUpViewInWindow(userArgs->x, userArgs->y, userArgs->width, userArgs->height);
+    
+    
+    //----------------- Init Camera and alpha channel ---------------------//
+    osg::DisplaySettings* ds = cam->getDisplaySettings();
+    osg::GraphicsContext::Traits* traits = new osg::GraphicsContext::Traits(ds);
+    const osg::GraphicsContext::Traits* src_traits = cam->getGraphicsContext()->getTraits();
+    traits->x = userArgs->x;
+    traits->y = userArgs->y;
+    traits->width = userArgs->width;
+    traits->height = userArgs->height;
+    traits->alpha = 8;
+    traits->windowDecoration = src_traits->windowDecoration;
+    traits->doubleBuffer = src_traits->doubleBuffer;
+    
+    osg::GraphicsContext* pbuffer = osg::GraphicsContext::createGraphicsContext(traits);
+    cam->setGraphicsContext(pbuffer);
+    
+    
+    //----------------- Init Camera position ---------------------//
+    viewer->getCameraManipulator()->setHomePosition(userArgs->eye, userArgs->coi, userArgs->up);
+    viewer->home();
+}
+
+
+
+
+int takeOneSnapShotAndQuit(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
+{
+    viewer->realize();
+    viewer->frame(userArgs->time);
+    viewer->frame(userArgs->time);
+    viewer->takeSnapshot(userArgs->snapShotName);
+    return 0;
+}
+
+
+int recordAnimationAndQuit(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
+{
+    viewer->realize();
+    viewer->frame(0);
+    viewer->frame(0);
+#if defined WIN32
+        CreateDirectory(userArgs->recordDirectoryName.c_str(), NULL);
+#elif defined UNIX
+        mkdir(userArgs->recordDirectoryName.c_str(), 0755);
+#endif
+    char buffer[64];
+    for (int i=0; i<=viewer->getTotalFrame(); i++)
+    {
+#if defined WIN32
+        sprintf(buffer, ".\\%s\\%06i.png", userArgs->recordDirectoryName.c_str(), i);
+#elif defined UNIX
+        sprintf(buffer, "./%s/%06i.png", userArgs->recordDirectoryName.c_str(), i);
+#endif
+        viewer->setFrame(i);
+        viewer->frame(viewer->getCurrentTime());
+        viewer->takeSnapshot(buffer);
+    }
+    return 0;
+}
+
+
+
+
+
+/**
+ * Main function: load and display collada file.
+ */
+int main(int argc, char** argv) 
+{
+    //----------------- Define program arguments -------------------//
+    osg::ArgumentParser* OSGArguments = defineProgramArguments(&argc, argv);
+
+
+    //----------------- Display help and quit -------------------//
+    if (OSGArguments->read("-h")     ||
+        OSGArguments->read("-help")  ||
+        OSGArguments->read("--help") ||
+        OSGArguments->argc()<=1 )
+    {
+        OSGArguments->getApplicationUsage()->write(std::cout, osg::ApplicationUsage::COMMAND_LINE_OPTION);
         return 0;
     }
 
-    std::string daeFile = arguments[1]; //The daefile MUST be the first argument!!
-
-    unsigned int x=50, y=50, width=800, height=600, fps=-1;
-    arguments.read("-pos", x, y);
-    arguments.read("-window", width, height);
-    arguments.read("-fps", fps);
-    
-    osg::Vec4f backGroundColor(-1,-1,-1,-1);
-    arguments.read("-bgcolor", backGroundColor[0], backGroundColor[1],
-                               backGroundColor[2], backGroundColor[3]);
-    
-    osg::Node::NodeMask displayMask = 0xffffffe7;
-    int res;
-    if (arguments.read("-showframes", res))   {if (res) displayMask |= (1 << 0); else displayMask &= ~(1 << 0);};
-    if (arguments.read("-showshapes", res))   {if (res) displayMask |= (1 << 1); else displayMask &= ~(1 << 1);};
-    if (arguments.read("-showlinks", res))    {if (res) displayMask |= (1 << 2); else displayMask &= ~(1 << 2);};
-    if (arguments.read("-showinertias", res)) {if (res) displayMask |= (1 << 3); else displayMask &= ~(1 << 3);};
-    if (arguments.read("-shownames", res))    {if (res) displayMask |= (1 << 4); else displayMask &= ~(1 << 4);};
-
-    bool takeSnapShot = false;
-    std::string snapShotName = "snapshot_daenim.png";
-    takeSnapShot = arguments.read("-snapshot", snapShotName);
-    bool recordAnimation = false;
-    std::string recordDirectoryName = "daenim_recordAnimation";
-    recordAnimation = arguments.read("-rec", recordDirectoryName);
-    std::string extension_type = "png";
-    arguments.read("-extension", extension_type);
-
-    osg::Vec3d eye(0,0,1);
-    osg::Vec3d coi(0,0,0);
-    osg::Vec3d up(0,1,0);
-    
-    bool setNewHome = false;
-    setNewHome |= arguments.read("-eye", eye[0], eye[1], eye[2]);
-    setNewHome |= arguments.read("-coi", coi[0], coi[1], coi[2]);
-    setNewHome |= arguments.read("-up", up[0], up[1], up[2]);
-
-    std::string host;
-    unsigned int port=0;
-    bool communicationWithSocket = arguments.read("-socket", host, port);
-    bool hasAnAnimation = false;
-    
-    bool verbose = false;
-    verbose = arguments.read("-verbose");
+    //----------------- Get arguments -------------------//
+    ArgContainer* userArgs = getUserArguments(OSGArguments);
 
 
-
-
-    //----------------- Load data -------------------//
+    //----------------- Load data in dae file -------------------//
     osg::Group* rootGroup = new osg::Group();
-    osg::Node* fileNode  = osgDB::readNodeFile(daeFile);
+    osg::Node* fileNode   = osgDB::readNodeFile(userArgs->daeFile);
     if(!fileNode)
     {
-        std::cout << arguments.getApplicationName() <<": No data loaded" << std::endl;
+        std::cout << OSGArguments->getApplicationName() <<": No data loaded" << std::endl;
         return 1;
     }
     rootGroup->addChild(fileNode);
-    parse(fileNode, "", verbose);
+    parse(fileNode, "", userArgs->verbose);
 
-    //----------------- Modifiy fileNode to set the UP vector along Z (avoid double transformation when using "-up" argument) -------------------//
-    if ((std::string(fileNode->className()) == "PositionAttitudeTransform")) {
-        fileNode->asTransform()->asPositionAttitudeTransform()->setAttitude(osg::Quat(0.0f, osg::Vec3(1.0f,0.0f,0.0f)));
-    }
-    
+
+    //----------------- Modifiy fileNode to set the UP vector along Z -------------------//
+    defineUpAxisInScene(fileNode, userArgs);
+
+
     //----------------- Create Viewer and interface -------------------//
     osgViewer::ViewerExt viewer;
     viewer.addEventHandler(new KeyEventHandler());
     
-    if (communicationWithSocket)
+    if (userArgs->communicationWithSocket)
     {
-        SOCKET sock = OpenPort(host.c_str(), port);
+        SOCKET sock = OpenPort(userArgs->host.c_str(), userArgs->port);
         fileNode->setUpdateCallback(new SocketCallback(fileNode, sock));
     }
     else
@@ -255,9 +413,9 @@ int main(int argc, char** argv)
         fileNode->accept(finder);
         if (finder._animManager.valid())
         {
-            hasAnAnimation = true;
+            userArgs->hasAnAnimation = true;
             fileNode->setUpdateCallback(finder._animManager.get());
-            AnimtkViewerGUI*        gui = new AnimtkViewerGUI(&viewer, width, height, finder._animManager.get(), extension_type); //interface
+            AnimtkViewerGUI* gui = new AnimtkViewerGUI(&viewer, userArgs->width, userArgs->height, finder._animManager.get(), userArgs->extension_type); //interface
             osg::Camera*     camera = gui->createParentOrthoCamera();
             rootGroup->addChild(camera);
 
@@ -269,78 +427,26 @@ int main(int argc, char** argv)
             osg::notify(osg::WARN) << "no animation found in the subgraph"<<std::endl;
         }
     }
-
-    //------------------- Init and Start Viewer -----------------------//
-    viewer.setUpViewInWindow(x, y, width, height);
     viewer.setSceneData(rootGroup);
 
-    osgGA::TrackballManipulator* manipulator = new osgGA::TrackballManipulator();
-    viewer.setCameraManipulator(manipulator);
-    
-    osg::Camera* cam = viewer.getCamera();
-    cam->setCullMask(displayMask);
-    if (backGroundColor[3]>=0.)
+
+    //------------------- Init and Start Viewer -----------------------//
+    initViewer(&viewer, userArgs);
+
+
+
+
+    //------------------- What to do... -----------------------//
+    if (userArgs->takeSnapShot)
     {
-        cam->setClearColor(backGroundColor);
+        return takeOneSnapShotAndQuit(&viewer, userArgs);
     }
-    
-    
-    //----------------- Init Camera and alpha channel ---------------------//
-    osg::DisplaySettings* ds = cam->getDisplaySettings();
-    osg::GraphicsContext::Traits* traits = new osg::GraphicsContext::Traits(ds);
-    const osg::GraphicsContext::Traits* src_traits = cam->getGraphicsContext()->getTraits();
-    traits->x = src_traits->x;
-    traits->y = src_traits->y;
-    traits->width = src_traits->width;
-    traits->height = src_traits->height;
-    traits->alpha = 8;
-    traits->windowDecoration = src_traits->windowDecoration;
-    traits->doubleBuffer = src_traits->doubleBuffer;
-    
-    osg::GraphicsContext* pbuffer = osg::GraphicsContext::createGraphicsContext(traits);
-    cam->setGraphicsContext(pbuffer);
-    
-    
-    if (setNewHome)
+    if (userArgs->recordAnimation && userArgs->hasAnAnimation)
     {
-        viewer.getCameraManipulator()->setHomePosition(eye,coi,up);
-        viewer.home();
+        return recordAnimationAndQuit(&viewer, userArgs);
     }
 
-    if (takeSnapShot)
-    {
-        viewer.realize();
-        viewer.frame(0);
-        viewer.frame(0);
-        viewer.takeSnapshot(snapShotName);
-        return 0;
-    }
-    if (recordAnimation && hasAnAnimation)
-    {
-        viewer.realize();
-        viewer.frame(0);
-        viewer.frame(0);
-#if defined WIN32
-            CreateDirectory(recordDirectoryName.c_str(), NULL);
-#elif defined UNIX
-            mkdir(recordDirectoryName.c_str(), 0755);
-#endif
-        char buffer[64];
-        for (int i=0; i<=viewer.getTotalFrame(); i++)
-        {
-#if defined WIN32
-            sprintf(buffer, ".\\%s\\%06i.png", recordDirectoryName.c_str(), i);
-#elif defined UNIX
-            sprintf(buffer, "./%s/%06i.png", recordDirectoryName.c_str(), i);
-#endif
-            viewer.setFrame(i);
-            viewer.frame(viewer.getCurrentTime());
-            viewer.takeSnapshot(buffer);
-        }
-        return 0;
-    }
-
-    if (hasAnAnimation || fps<=0)
+    if (userArgs->hasAnAnimation || userArgs->fps<=0)
     {
         return viewer.run();
     }
@@ -350,9 +456,9 @@ int main(int argc, char** argv)
         {
             viewer.frame();
 #ifdef UNIX
-            usleep(1000000/fps);
+            usleep(1000000/userArgs->fps);
 #elif WIN32
-            Sleep(1000/fps);
+            Sleep(1000/userArgs->fps);
 #endif
         }
         return 0;
