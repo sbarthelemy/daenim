@@ -27,6 +27,8 @@
 #include <osgWidget/WindowManager>
 #include <osgAnimation/EaseMotion>
 
+#include <osgDB/WriteFile>
+
 #include <osgAnimation/BasicAnimationManager>
 
 class AnimtkViewerGUI: public osgWidget::WindowManager
@@ -99,18 +101,21 @@ struct ButtonFunctor: public osg::Drawable::UpdateCallback
 
 
 
-class SnapshotCallback : public osg::NodeCallback 
+
+
+class WriteInFile : public osgViewer::ScreenCaptureHandler::CaptureOperation
 {
-private:
-    osgViewer::ViewerExt* viewer;
-    int                   _currentFrame;
-    std::string           _extension;
-
 public:
-    SnapshotCallback(osgViewer::ViewerExt* _viewer, std::string extension);
-    virtual ~SnapshotCallback();
+    WriteInFile(const std::string extension);
+    virtual ~WriteInFile() {};
+    virtual void operator() (const osg::Image& image, const unsigned int context_id);
+    void setFileName(std::string fileName);
 
-    virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+protected:
+
+    std::string _filename;
+    std::string _extension;
 };
+
 
 #endif

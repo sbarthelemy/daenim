@@ -13,6 +13,10 @@
 #include <osgViewer/Viewer>
 #include <osgAnimation/Animation>
 
+#include <osgViewer/ViewerEventHandlers>
+
+
+
 
 namespace osgViewer {
 
@@ -20,8 +24,11 @@ class ViewerExt : public osgViewer::Viewer
 {
 public:
     ViewerExt();
+    virtual ~ViewerExt();
     void setTimelineFromAnimation(osgAnimation::Animation*);
     virtual int run();
+    void attachImageToCamera();
+    void detachImageToCamera();
     void takeSnapshot(std::string imageName);
 
     //------ Get/Set ------//
@@ -38,18 +45,25 @@ public:
     int   getFrame();
     int   getTotalFrame();
 
-    
 
 private:
-    osg::Image* _image;
-
+    osg::ref_ptr<osg::Image> _image;
+/*    osgViewer::ScreenCaptureHandler* snapshotHandler;*/
+/*    WriteInFile* writerOperator;*/
+    
     float _speed;
     float _currentTime , _totalTime;
     int   _currentFrame, _totalFrame;
     float *frameTimes;
     bool  _pause;
+    double _minFrameTime;
 };
 
 } //namespace
+
+
+
+
+
 
 #endif

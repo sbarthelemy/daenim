@@ -20,6 +20,9 @@
 
 #include <stdio.h>
 
+#include <osgViewer/ViewerEventHandlers>
+#include <osg/DeleteHandler>
+
 //-------------- Some definition to set the viewer interface -----------------//
 #define BUTTON_HEIGHT     64.0f
 #define CURSOR_SIZE     5.0f
@@ -395,23 +398,18 @@ void AnimtkViewerGUI::_setSliderPos(float pos)
     _sliderPos = pos;
 
     _sliderPercent = pos / (getWidth());
-    _sliderCursorBox->setX(_sliderPercent*(getWidth())); //-5
+    _sliderCursorBox->setX(_sliderPercent*(getWidth()));
 
     viewer->setCurrentTime(animDuration*_sliderPercent);
-    //std::cout<<"in setSliderPos"<<std::endl;
 }
 
 void AnimtkViewerGUI::_setSliderTime(float time)
 {
-    //if (time < 0) time = 0;
-    //else if (time > animDuration) time = animDuration;
-    
     float pos = (time / animDuration) * getWidth();
     _setSliderPos(pos);
     char buffer[256];
     sprintf(buffer, "%02d:%02d.%03d", (int)(time/60), ((int)time)%60, ((int)(time*1000))%1000);
     _timeLabel->setLabel(buffer);
-    //std::cout<<"in setSliderTime"<<std::endl;
 }
 
 void AnimtkViewerGUI::setPause(bool state)
@@ -430,8 +428,53 @@ void AnimtkViewerGUI::setPause(bool state)
 
 void AnimtkViewerGUI::startRecordAnimation()
 {
+    char buffer[256];
+    std::string recordDirectoryName("daenim_recordAnimation");
+
+
     setPause(true);
-    viewer->getCamera()->setUpdateCallback(new SnapshotCallback(viewer, _extension));
+    osg::Node::NodeMask mask = viewer->getCamera()->getCullMask();
+    mask &= ~(1 << 31);
+    viewer->getCamera()->setCullMask(mask);
+
+
+    osg::ref_ptr<osgViewer::ScreenCaptureHandler> snapshotHandler = new osgViewer::ScreenCaptureHandler();
+    osg::ref_ptr<WriteInFile> writerOperator  = new WriteInFile("png");
+    snapshotHandler->setCaptureOperation(writerOperator);
+
+
+#if defined WIN32
+        CreateDirectory(recordDirectoryName.c_str(), NULL);
+#elif defined UNIX
+        mkdir(recordDirectoryName.c_str(), 0755);
+#endif
+
+    writerOperator->setFileName("000000.png");
+    snapshotHandler->captureNextFrame(*viewer);
+    viewer->setFrame(0);
+    viewer->frame(viewer->getCurrentTime());
+    for (int i=0; i<viewer->getTotalFrame(); i++)
+    {
+        std::cout<<i<<std::endl;
+#if defined WIN32
+        sprintf(buffer, ".\\%s\\%06i.png", recordDirectoryName.c_str(), i);
+#elif defined UNIX
+        sprintf(buffer, "./%s/%06i.png", recordDirectoryName.c_str(), i);
+#endif
+        writerOperator->setFileName(std::string(buffer));
+        snapshotHandler->captureNextFrame(*viewer);
+        viewer->setFrame(i);
+        viewer->frame(viewer->getCurrentTime());
+    }
+
+    snapshotHandler->setCaptureOperation(NULL);
+    
+    
+    
+    mask |= (1 << 31);
+    viewer->getCamera()->setCullMask(mask);
+
+    viewer->setFrame(0);
 }
 
 
@@ -482,59 +525,23 @@ void ButtonFunctor::update(float t, osgWidget::Widget* w)
 
 
 /*=======================================
- * SnapshotCallback
+ * WriteInFile function
  *=====================================*/
-SnapshotCallback::SnapshotCallback(osgViewer::ViewerExt* _viewer, std::string extension)
-{
-    viewer = _viewer;
-    _currentFrame = 0;
-    _extension = extension;
 
-#if defined WIN32
-    CreateDirectory("daenim_recordAnimation", NULL);
-#elif defined UNIX
-    mkdir("daenim_recordAnimation", 0755);
-#endif
-    
-    osg::Node::NodeMask mask = viewer->getCamera()->getCullMask();
-    mask &= ~(1 << 31);
-    viewer->getCamera()->setCullMask(mask);
-    
-    
-    viewer->setCurrentTime(0.0f);
-}
-
-SnapshotCallback::~SnapshotCallback()
+WriteInFile::WriteInFile(const std::string extension):
+_filename("000000"),
+_extension(extension)
 {
 }
 
-void SnapshotCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
+void WriteInFile::operator () (const osg::Image& image, const unsigned int context_id)
 {
-    //std::cout<<"in callback "<< node->className() <<std::endl;
-    //osg::Camera* cam = (osg::Camera*)node;
-    //std::cout<<viewer->getFrame()<< " -- "<< _currentFrame<< " "<<std::hex<<cam->getCullMask() <<std::endl;
-
-    if (viewer->getFrame() == _currentFrame)
-    {
-        //std::cout<<"has frame "<<viewer->getFrame()<<std::endl;
-        char buffer[64];
-#if defined WIN32
-        sprintf(buffer, ".\\daenim_recordAnimation\\%06i.%s", _currentFrame, _extension.c_str());
-#elif defined UNIX
-        sprintf(buffer, "./daenim_recordAnimation/%06i.%s", _currentFrame, _extension.c_str());
-#endif
-        viewer->takeSnapshot(buffer);
-        _currentFrame++;
-        viewer->setFrame(_currentFrame);
-        if (_currentFrame >= viewer->getTotalFrame())
-        {
-            std::cout<<"remove SnapshotCallback"<<std::endl;
-            osg::Node::NodeMask mask = viewer->getCamera()->getCullMask();
-            mask |= (1 << 31);
-            viewer->getCamera()->setCullMask(mask);
-            node->removeUpdateCallback(this);
-        }
-    }
+    osgDB::writeImageFile(image, _filename);
+    std::cout<<"ScreenCaptureHandler: Taking screenshot '"<<_filename<<"'"<<std::endl;
 }
 
+void WriteInFile::setFileName(std::string filename)
+{
+    _filename = filename;
+};
 

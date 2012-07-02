@@ -144,7 +144,7 @@ osg::ArgumentParser* defineProgramArguments(int *argc, char** argv)
 
     arg->getApplicationUsage()->setApplicationName(arg->getApplicationName());
     arg->getApplicationUsage()->setDescription(arg->getApplicationName()+" TODO."); //TODO
-    arg->getApplicationUsage()->addCommandLineOption("-h | -help | --help","Display the help command");
+    arg->getApplicationUsage()->addCommandLineOption("-h | --help","Display the help command");
     arg->getApplicationUsage()->addCommandLineOption("-pos x y","Set the window position along x and y");
     arg->getApplicationUsage()->addCommandLineOption("-window w h","Set the window width and height");
     arg->getApplicationUsage()->addCommandLineOption("-fps <int>","Set the framerate of the view. Useful to save cpu consumption");
@@ -321,16 +321,19 @@ void initViewer(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
 
 int takeOneSnapShotAndQuit(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
 {
+    viewer->attachImageToCamera();
     viewer->realize();
     viewer->frame(userArgs->time);
     viewer->frame(userArgs->time);
     viewer->takeSnapshot(userArgs->snapShotName);
+    viewer->detachImageToCamera();
     return 0;
 }
 
 
 int recordAnimationAndQuit(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
 {
+    viewer->attachImageToCamera();
     viewer->realize();
     viewer->frame(0);
     viewer->frame(0);
@@ -339,8 +342,8 @@ int recordAnimationAndQuit(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
 #elif defined UNIX
         mkdir(userArgs->recordDirectoryName.c_str(), 0755);
 #endif
-    char buffer[64];
-    for (int i=0; i<=viewer->getTotalFrame(); i++)
+    char buffer[256];
+    for (int i=0; i<viewer->getTotalFrame(); i++)
     {
 #if defined WIN32
         sprintf(buffer, ".\\%s\\%06i.png", userArgs->recordDirectoryName.c_str(), i);
@@ -351,6 +354,7 @@ int recordAnimationAndQuit(osgViewer::ViewerExt* viewer, ArgContainer* userArgs)
         viewer->frame(viewer->getCurrentTime());
         viewer->takeSnapshot(buffer);
     }
+    viewer->detachImageToCamera();
     return 0;
 }
 
@@ -369,7 +373,6 @@ int main(int argc, char** argv)
 
     //----------------- Display help and quit -------------------//
     if (OSGArguments->read("-h")     ||
-        OSGArguments->read("-help")  ||
         OSGArguments->read("--help") ||
         OSGArguments->argc()<=1 )
     {
@@ -399,6 +402,7 @@ int main(int argc, char** argv)
 
     //----------------- Create Viewer and interface -------------------//
     osgViewer::ViewerExt viewer;
+    viewer.setRunMaxFrameRate(userArgs->fps);
     viewer.addEventHandler(new KeyEventHandler());
     
     if (userArgs->communicationWithSocket)
@@ -446,23 +450,7 @@ int main(int argc, char** argv)
         return recordAnimationAndQuit(&viewer, userArgs);
     }
 
-    if (userArgs->hasAnAnimation || userArgs->fps<=0)
-    {
-        return viewer.run();
-    }
-    else
-    {
-        while (!viewer.done())
-        {
-            viewer.frame();
-#ifdef UNIX
-            usleep(1000000/userArgs->fps);
-#elif WIN32
-            Sleep(1000/userArgs->fps);
-#endif
-        }
-        return 0;
-    }
+    return viewer.run();
 }
 
 

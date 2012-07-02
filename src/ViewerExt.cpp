@@ -18,7 +18,12 @@
 #include <osgAnimation/Sampler>
 
 
+
 using namespace osgViewer;
+
+
+
+
 
 ViewerExt::ViewerExt():
 _speed (1.0f),
@@ -29,8 +34,18 @@ _totalFrame(0),
 _pause(true)
 {
     _image = new osg::Image();
-    this->getCamera()->attach(osg::Camera::COLOR_BUFFER, _image);
+    frameTimes = NULL;
 }
+
+
+ViewerExt::~ViewerExt()
+{
+    if (frameTimes != NULL)
+    {
+        delete[] frameTimes;
+    }
+}
+
 
 void ViewerExt::setTimelineFromAnimation(osgAnimation::Animation* animation)
 {
@@ -82,10 +97,14 @@ int ViewerExt::run()
     osg::Timer_t startFrameTick = osg::Timer::instance()->tick();
     osg::Timer_t endFrameTick;
     double frameTime;
+
+    _minFrameTime = _runMaxFrameRate>0.0 ? 1.0/_runMaxFrameRate : 0.0;
     while(!done())
     {
+        osg::Timer_t startFrameTick = osg::Timer::instance()->tick();
+        
         frame(_currentTime);
-
+        
         endFrameTick = osg::Timer::instance()->tick();
         frameTime = osg::Timer::instance()->delta_s(startFrameTick, endFrameTick);
         startFrameTick = osg::Timer::instance()->tick();
@@ -98,7 +117,8 @@ int ViewerExt::run()
         {
             _currentTime = 0.0f;
         }
-        
+
+        if (frameTime < _minFrameTime) OpenThreads::Thread::microSleep(static_cast<unsigned int>(1000000.0*(_minFrameTime-frameTime)));
     }
 
     return 0;
@@ -184,9 +204,28 @@ void ViewerExt::setFrame(int frame)
 }
 
 
+
+void ViewerExt::attachImageToCamera()
+{
+    this->getCamera()->attach(osg::Camera::COLOR_BUFFER, _image);
+};
+
+
+void ViewerExt::detachImageToCamera()
+{
+    this->getCamera()->detach(osg::Camera::COLOR_BUFFER);
+};
+
+
+
 void ViewerExt::takeSnapshot(std::string imageName)
 {
     osgDB::writeImageFile(*_image, imageName);
 }
+
+
+
+
+
 
 
