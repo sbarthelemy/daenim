@@ -11,6 +11,10 @@ include_directories(
 IF (UNIX)
     ADD_DEFINITIONS(-DUNIX)
 ENDIF (UNIX)
+IF (APPLE)
+    ADD_DEFINITIONS(-DAPPLE)
+ENDIF (APPLE)
+
 
 add_executable(
     daenim
@@ -22,15 +26,14 @@ add_executable(
 )
 target_link_libraries(
     daenim
-    ${OSG_LIBRARY_DEBUG}
-    ${OSGWIDGET_LIBRARY_DEBUG}
-    ${OSGANIMATION_LIBRARY_DEBUG}
-    ${OSGVIEWER_LIBRARY_DEBUG}
-    ${OSGGA_LIBRARY_DEBUG}
-    ${OSGUTIL_LIBRARY_DEBUG}
-    ${OSGDB_LIBRARY_DEBUG}
-    ${OSGTEXT_LIBRARY_DEBUG}
-    ${OPENTHREADS_LIBRARY_DEBUG}
+    ${OSG_LIBRARY}
+    ${OSGWIDGET_LIBRARY}
+    ${OSGANIMATION_LIBRARY}
+    ${OSGVIEWER_LIBRARY}
+    ${OSGGA_LIBRARY}
+    ${OSGDB_LIBRARY}
+    ${OSGTEXT_LIBRARY}
+    ${OPENTHREADS_LIBRARY}
 )
 set_target_properties(
     daenim
@@ -43,14 +46,3 @@ install(
     TARGETS daenim
     RUNTIME
     DESTINATION bin)
-if (APPLE)
-    configure_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/FixBundle.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
-        @ONLY
-    )
-    install(
-        SCRIPT
-        ${CMAKE_CURRENT_BINARY_DIR}/FixBundle.cmake
-    )
-endif (APPLE)

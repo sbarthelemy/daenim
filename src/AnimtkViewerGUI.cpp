@@ -38,6 +38,13 @@
     #define FIRST_ARG NULL
     #define ICON_PATH "Icons\\"
     #define FONT "FreeMono.ttf"
+#elif defined APPLE
+    #include <mach-o/dyld.h>
+    #define APP_PATH_FINDER _NSGetExecutablePath
+    #define ICON_PATH "Icons/"
+    #define FONT "FreeMono.ttf"
+    #include <sys/stat.h>
+    #include <sys/types.h>
 #elif defined UNIX
     #include <unistd.h>
     #define APP_PATH_FINDER readlink
@@ -45,12 +52,19 @@
     #define ICON_PATH "../share/daenim/Icons/"
     #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
     #include <sys/stat.h>
-    #include <sys/types.h> //TODO
+    #include <sys/types.h>
 #endif
+
+
 std::string getIconAbsolutePath()
 {
     char result[2048];
+#if defined APPLE
+    uint32_t res_size = sizeof(result);
+    APP_PATH_FINDER(result, &res_size);
+#else
     APP_PATH_FINDER( FIRST_ARG, result, 2048 );
+#endif
     std::string str_result;
     str_result = result;
     size_t found = str_result.find_last_of("/\\");
