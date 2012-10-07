@@ -102,7 +102,6 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
         numRead = recv(s, msg, MAX_LEN, MSG_DONTWAIT);
 #endif
         complete_msg = msg;
-        std::cout<<"numRead: "<<numRead<<std::endl;
         
         if (numRead>0)
         {
@@ -116,8 +115,6 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 #endif
                 complete_msg += msg;
             }
-
-            std::cout<<complete_msg.size()<<std::endl;
             
             // The complete message is received, we can treat it now
             std::string name;
