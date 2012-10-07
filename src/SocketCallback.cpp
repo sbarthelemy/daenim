@@ -1,7 +1,8 @@
 
 #include "SocketCallback"
 
-
+//#include <iostream>
+#include <sstream>
 
 SOCKET OpenPort(const char* _host, const int _port) {
 
@@ -54,8 +55,9 @@ void ClosePort(SOCKET sock) {
 
 //#define MAX_LEN 2048
 #define MAX_LEN 4096
-SocketCallback::SocketCallback(osg::Node* node, SOCKET _s):
-s(_s)
+SocketCallback::SocketCallback(osg::Node* node, SOCKET _s)
+    :s(_s)
+    ,communication_is_running(true)
 {
     parse(node);
 }
@@ -82,6 +84,74 @@ void SocketCallback::parse(osg::Node* curNode)
     }
 }
 
+
+
+void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
+{
+    char msg[MAX_LEN];
+    std::string complete_msg;
+
+    int numRead;
+
+    if (communication_is_running)
+    {
+        memset(msg, 0x0, MAX_LEN);
+#if defined WIN32
+        numRead = recv(s, msg, MAX_LEN, 0);
+#elif defined UNIX
+        numRead = recv(s, msg, MAX_LEN, MSG_DONTWAIT);
+#endif
+        complete_msg = msg;
+        std::cout<<"numRead: "<<numRead<<std::endl;
+        
+        if (numRead>0)
+        {
+            while (numRead == MAX_LEN)
+            {
+                memset(msg, 0x0, MAX_LEN);
+#if defined WIN32
+                numRead = recv(s, msg, MAX_LEN, 0);
+#elif defined UNIX
+                numRead = recv(s, msg, MAX_LEN, MSG_DONTWAIT);
+#endif
+                complete_msg += msg;
+            }
+
+            std::cout<<complete_msg.size()<<std::endl;
+            
+            // The complete message is received, we can treat it now
+            std::string name;
+            float data[12];
+            std::stringstream ss2(complete_msg);
+            
+            while(ss2 >> name)
+            {
+                if (name == "close_connection")
+                {   communication_is_running=false;
+                    shutdown(s,2);
+                    std::cout<<"SocketCallBack is shutted down"<<std::endl;
+                    break;
+                }
+                
+                ss2 >>data[0]>>data[1]>>data[2]>>data[3]
+                    >>data[4]>>data[5]>>data[6]>>data[7]
+                    >>data[8]>>data[9]>>data[10]>>data[11];
+                
+                if (validNode.find(name.c_str()) != validNode.end())
+                {
+                            osg::Matrix m(data[0],data[4],data[8] ,0,
+                                          data[1],data[5],data[9] ,0,
+                                          data[2],data[6],data[10],0,
+                                          data[3],data[7],data[11],1);
+                            validNode[name]->setMatrix(m);
+                }
+            }
+        }
+    }
+    traverse(node, nv); 
+}
+
+/*
 void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 {
     char msg[sizeof(ArbTransform)];
@@ -124,5 +194,6 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
     }
     traverse(node, nv); 
 }
+*/
 
 

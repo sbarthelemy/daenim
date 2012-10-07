@@ -43,14 +43,16 @@ void ClosePort(SOCKET sock);
 class SocketCallback : public osg::NodeCallback 
 {
 public:
-    SOCKET s;
-    std::map<std::string, osg::MatrixTransform*> validNode;
-
     SocketCallback(osg::Node* node, SOCKET _s);
     virtual ~SocketCallback();
 
     void parse(osg::Node* curNode);
     virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
+
+protected:
+    SOCKET s;
+    std::map<std::string, osg::MatrixTransform*> validNode;
+    bool communication_is_running;
 };
 
 #endif
