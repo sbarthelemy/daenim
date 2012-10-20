@@ -37,22 +37,22 @@
     #define APP_PATH_FINDER GetModuleFileName
     #define FIRST_ARG NULL
     #define ICON_PATH "Icons\\"
-    #define FONT "FreeMono.ttf"
+    #define FONT "Arial.ttf"
 #elif defined APPLE
     #include <mach-o/dyld.h>
-    #define APP_PATH_FINDER _NSGetExecutablePath
-    #define ICON_PATH "Icons/"
-    #define FONT "FreeMono.ttf"
     #include <sys/stat.h>
     #include <sys/types.h>
+    #define APP_PATH_FINDER _NSGetExecutablePath
+    #define ICON_PATH "../share/daenim/Icons/Icons/"
+    #define FONT "Arial.ttf"
 #elif defined UNIX
     #include <unistd.h>
+    #include <sys/stat.h>
+    #include <sys/types.h>
     #define APP_PATH_FINDER readlink
     #define FIRST_ARG "/proc/self/exe"
     #define ICON_PATH "../share/daenim/Icons/"
     #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
-    #include <sys/stat.h>
-    #include <sys/types.h>
 #endif
 
 

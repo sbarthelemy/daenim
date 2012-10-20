@@ -37,9 +37,12 @@
 
 #if defined WIN32
     #include <windows.h>
-    #define FONT "FreeMono.ttf"
+    #define FONT "Arial.ttf"
+#elif defined APPLE
+    #include <sys/stat.h>
+    #include <sys/types.h>
+    #define FONT "Arial.ttf"
 #elif defined UNIX
-    #include <unistd.h>
     #include <sys/stat.h>
     #include <sys/types.h> //TODO
     #define FONT "/usr/share/fonts/truetype/freefont/FreeMono.ttf"
