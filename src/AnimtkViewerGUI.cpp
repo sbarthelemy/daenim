@@ -43,7 +43,7 @@
     #include <sys/stat.h>
     #include <sys/types.h>
     #define APP_PATH_FINDER _NSGetExecutablePath
-    #define ICON_PATH "../share/daenim/Icons/Icons/"
+    #define ICON_PATH "../share/daenim/Icons/"
     #define FONT "Arial.ttf"
 #elif defined UNIX
     #include <unistd.h>
