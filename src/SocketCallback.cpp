@@ -101,7 +101,7 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 #elif defined UNIX
         numRead = recv(s, msg, MAX_LEN, MSG_DONTWAIT);
 #endif
-        complete_msg = msg;
+        complete_msg.append(msg, 0, numRead);
         
         if (numRead>0)
         {
@@ -113,7 +113,7 @@ void SocketCallback::operator()(osg::Node* node, osg::NodeVisitor* nv)
 #elif defined UNIX
                 numRead = recv(s, msg, MAX_LEN, MSG_DONTWAIT);
 #endif
-                complete_msg += msg;
+                complete_msg.append(msg, numRead);
             }
             
             // The complete message is received, we can treat it now
