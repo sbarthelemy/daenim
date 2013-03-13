@@ -8,11 +8,11 @@ set(LIBRARY_OUTPUT_PATH ${daenim_BINARY_DIR}/lib)
 
 
 include(InstallRequiredSystemLibraries)
-
+include(getversion)
 
 add_subdirectory(src)
 install(
     DIRECTORY ${daenim_SOURCE_DIR}/data/Icons
     DESTINATION share/daenim
 )
-
+get_version()
