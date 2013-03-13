@@ -8,7 +8,14 @@ OpenSceneGraph library.
 Install
 =======
 
-TODO: create & publish binary packages and explain how to use them.
+On Ubuntu Precise Pangolin, the binary packge is available on a dedicated PPA:
+
+    sudo add-apt-repository ppa:barthelemy/collada
+    sudo apt-get update
+    sudo aptitude install daenim
+
+TODO: create & publish binary packages for other platforms and explain how to
+      use them.
 
 Content
 =======
@@ -28,19 +35,19 @@ Build from source
 Prerequisites
 -------------
 
-The only prerequisites is openscenegraph 2.9.9 with collada support.
+The only prerequisites is openscenegraph with collada support.
 
-On Ubuntu lucid lynx, we use OSG 2.9.9 available on dedicated PPA::
+On Ubuntu Precise Pangolin, we use OSG 3.0.1 available on dedicated PPA::
 
     sudo add-apt-repository ppa:barthelemy/collada
     sudo apt-get update
     sudo aptitude install cmake libopenscenegraph-dev
 
-
 On Mac os X, one needs to build OSG manually. collada-dom is available through
 `macports <http://www.macports.org/>`_.
 
-FIXME: add Windows details
+TODO: check Mac os instructions
+TODO: add Windows instructions
 
 Build
 -----
@@ -52,3 +59,6 @@ Build
     cd ../daenim-build
     cmake ../daenim
     make
+    sudo make install
+
+without the install step, the executable won't find its icons.
