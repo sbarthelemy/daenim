@@ -8,7 +8,7 @@ OpenSceneGraph library.
 Install
 =======
 
-On Ubuntu Precise Pangolin, the binary packge is available on a dedicated PPA:
+On Ubuntu Precise Pangolin, the binary package is available on a dedicated PPA:
 
     sudo add-apt-repository ppa:barthelemy/collada
     sudo apt-get update
