@@ -16,3 +16,17 @@ install(
     DESTINATION share/daenim
 )
 get_version()
+
+# Packaging
+
+set(CPACK_SOURCE_IGNORE_FILES "/\\\\.git/" "/\\\\.DS_Store" ".*~" "\\\\.swp$")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+# generate source tarball compatible with debian naming scheme
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "daenim_${daenim_VERSION}")
+#CPACK_RESSOURCE_FILE_LICENSE
+#CPACK_RESSOURCE_FILE_WELCOME
+set(CPACK_RESSOURCE_FILE_README ${daenim_SOURCE_DIR}/README.txt)
+if(APPLE)
+    set(CPACK_GENERATOR "PackageMaker")
+endif()
+include(CPack)
